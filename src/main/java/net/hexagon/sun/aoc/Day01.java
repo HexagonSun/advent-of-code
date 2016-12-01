@@ -4,6 +4,8 @@ import javafx.geometry.Point2D;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -21,10 +23,23 @@ public class Day01 extends AdventOfCode {
 			return distX + distY;
 		}
 
-		private void moveBy(String step) {
-			boolean right= 'R' == step.charAt(0);
-			int distance= Integer.parseInt(step.substring(1));
+		private Point2D moveBy(String step) {
+			boolean right = 'R' == step.charAt(0);
+			int distance = Integer.parseInt(step.substring(1));
 
+			Point2D oneStep = calculateStep(right, distance);
+			updateDirection(right);
+
+			// do the step
+			position = position.add(oneStep);
+			return position;
+		}
+
+		private Point2D calculateStep(boolean right) {
+			return calculateStep(right, 1);
+		}
+
+		private Point2D calculateStep(boolean right, int distance) {
 			Point2D oneStep;
 			switch (direction) {
 				case 0:
@@ -61,16 +76,33 @@ public class Day01 extends AdventOfCode {
 					}
 					break;
 			}
+			return oneStep;
+		}
 
-			// update new direction
-			if (right) {
-				direction= Math.floorMod(direction + 1, 4);
-			} else {
-				direction= Math.floorMod(direction -1, 4);
+		private void updateDirection(boolean right) {
+			direction = Math.floorMod(direction + (right ? 1 : -1), 4);
+		}
+
+		private boolean stepBy(Set<Point2D> visited, String step) {
+			boolean right = 'R' == step.charAt(0);
+			int distance = Integer.parseInt(step.substring(1));
+
+			if (distance == 0) {
+				// just turn, nothing more
+				updateDirection(right);
+				return true;
 			}
 
-			// do the step
-			position= position.add(oneStep);
+			// simulate steps of distance 1
+			while (distance-- > 0) {
+				Point2D oneStep = calculateStep(right);
+				position= position.add(oneStep);
+				if (!visited.add(position)) {
+					return false;
+				}
+			}
+			updateDirection(right);
+			return true;
 		}
 	}
 
@@ -80,15 +112,18 @@ public class Day01 extends AdventOfCode {
 		String input = getInputAsString();
 		int distance= solveTask1(input);
 
-		// solution
-		assertThat(distance, is(181));
+		int solution= 181;
+		assertThat(distance, is(solution));
 	}
 
 	@Test
 	@Override
 	public void runTask2 () {
 		String input = getInputAsString();
-		solveTask2(input);
+		int distance= solveTask2(input);
+
+		int solution= 140;
+		assertThat(distance, is(solution));
 	}
 
 	@Test
@@ -121,6 +156,11 @@ public class Day01 extends AdventOfCode {
 		assertThat(solveTask1("R2, L1"), is(3));
 	}
 
+	@Test
+	public void runTask2Example1() {
+		assertThat(solveTask2("R8, R4, R4, R8"), is(4));
+	}
+
 	private int solveTask1(String input) {
 		return solveTask1(input.split(","));
 	}
@@ -136,8 +176,17 @@ public class Day01 extends AdventOfCode {
 	}
 
 	private int solveTask2(String[] input) {
-		// TODO: implement
-		return 1;
+		Set<Point2D> visited= new HashSet<>();
+		visited.add(Point2D.ZERO);
+
+		Position pos= new Position();
+		for (String step : input) {
+			boolean walkOn= pos.stepBy(visited, step.trim());
+			if (!walkOn) {
+				break;
+			}
+		}
+		return pos.getDistanceFromOrigin();
 	}
 
 }
