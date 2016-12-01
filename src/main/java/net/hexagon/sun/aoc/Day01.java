@@ -18,9 +18,8 @@ public class Day01 extends AdventOfCode {
 		int direction;
 
 		private int getDistanceFromOrigin() {
-			int distX= Math.abs((int) position.getX());
-			int distY= Math.abs((int) position.getY());
-			return distX + distY;
+			return Math.abs((int) position.getX())
+			     + Math.abs((int) position.getY());
 		}
 
 		private Point2D moveBy(String step) {
@@ -40,43 +39,27 @@ public class Day01 extends AdventOfCode {
 		}
 
 		private Point2D calculateStep(boolean right, int distance) {
-			Point2D oneStep;
+			Point2D step;
 			switch (direction) {
 				case 0:
 					// facing north
-					if (right) {
-						oneStep = new Point2D(distance, 0);
-					} else {
-						oneStep = new Point2D(-distance, 0);
-					}
+					step = new Point2D((right ? 1 : -1) * distance, 0);
 					break;
 				case 1:
 					// facing east
-					if (right) {
-						oneStep = new Point2D(0, -distance);
-					} else {
-						oneStep = new Point2D(0, distance);
-					}
+					step = new Point2D(0, (right ? -1 : 1) * distance);
 					break;
 				case 2:
 					// facing south
-					if (right) {
-						oneStep = new Point2D(-distance, 0);
-					} else {
-						oneStep = new Point2D(distance, 0);
-					}
+					step = new Point2D((right ? -1 : 1) * distance, 0);
 					break;
 				case 3:
 				default:
 					// facing west
-					if (right) {
-						oneStep = new Point2D(0, distance);
-					} else {
-						oneStep = new Point2D(0, -distance);
-					}
+					step = new Point2D(0, (right ? 1 : -1) * distance);
 					break;
 			}
-			return oneStep;
+			return step;
 		}
 
 		private void updateDirection(boolean right) {
@@ -87,14 +70,8 @@ public class Day01 extends AdventOfCode {
 			boolean right = 'R' == step.charAt(0);
 			int distance = Integer.parseInt(step.substring(1));
 
-			if (distance == 0) {
-				// just turn, nothing more
-				updateDirection(right);
-				return true;
-			}
-
-			// simulate steps of distance 1
 			while (distance-- > 0) {
+				// simulate steps of distance 1
 				Point2D oneStep = calculateStep(right);
 				position= position.add(oneStep);
 				if (!visited.add(position)) {
@@ -157,8 +134,18 @@ public class Day01 extends AdventOfCode {
 	}
 
 	@Test
+	public void runExample7() {
+		assertThat(solveTask1("R2, R0, L0, L1"), is(3));
+	}
+
+	@Test
 	public void runTask2Example1() {
 		assertThat(solveTask2("R8, R4, R4, R8"), is(4));
+	}
+
+	@Test
+	public void runTask2Example2() {
+		assertThat(solveTask2("R8, L0, R0, R4, R4, R8"), is(4));
 	}
 
 	private int solveTask1(String input) {
