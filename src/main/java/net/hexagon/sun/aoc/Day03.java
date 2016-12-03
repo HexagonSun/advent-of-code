@@ -87,13 +87,9 @@ public class Day03 extends AdventOfCode {
 		int count= 0;
 		// we checked the input length and know that we can read in groups of three lines
 		for (Iterator<String> it= input.iterator(); it.hasNext();) {
-			String line1 = it.next();
-			String line2 = it.next();
-			String line3 = it.next();
-
-			Matcher m1= TRIANGLE_PATTERN.matcher(line1);
-			Matcher m2= TRIANGLE_PATTERN.matcher(line2);
-			Matcher m3= TRIANGLE_PATTERN.matcher(line3);
+			Matcher m1= TRIANGLE_PATTERN.matcher(it.next());
+			Matcher m2= TRIANGLE_PATTERN.matcher(it.next());
+			Matcher m3= TRIANGLE_PATTERN.matcher(it.next());
 
 			if (m1.find() && m2.find() && m3.find()) {
 				count += isTriangle(m1.group(1), m2.group(1), m3.group(1)) ? 1 : 0;
