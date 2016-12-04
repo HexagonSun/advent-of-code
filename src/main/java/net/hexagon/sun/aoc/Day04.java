@@ -84,9 +84,26 @@ public class Day04 extends AdventOfCode {
 		boolean isReal() {
 			return checksum.equals(frequencyFive);
 		}
+
+		String getDecrypted() {
+			return rotate(name, sectorId);
+		}
+
+		private  String rotate(String encrypted, int offset) {
+			StringBuilder decrypted= new StringBuilder();
+			for (char c : encrypted.toCharArray()) {
+				char newC= ' ';
+				if ('-' != c) {
+					int x= (c - 'a' + offset) % 26;
+					newC= (char)(x + 'a');
+				}
+				decrypted.append(newC);
+			}
+			return decrypted.toString();
+		}
 	}
 
-	private static final Pattern FORMAT = Pattern.compile("([a-z-]*)-(\\d*)\\[(\\w*)\\]");
+	private static final Pattern FORMAT = Pattern.compile("([a-z-]*)-(\\d*)\\[(\\w*)]");
 
 	@Test
 	@Override
@@ -98,7 +115,7 @@ public class Day04 extends AdventOfCode {
 	@Test
 	@Override
 	public void runTask2 () {
-		int solution= 1921;
+		int solution= 984;
 		assertThat(solveTask2(getInputLines()), is(solution));
 	}
 
@@ -139,6 +156,9 @@ public class Day04 extends AdventOfCode {
 
 	@Test
 	public void runTask2Example1() {
+		List<String> input= Collections.singletonList("qzmt-zixmtkozy-ivhz-343[zimth]");
+		assertThat(solveTask2(input), is(0));
+
 	}
 
 	private int solveTask1 (List<String> input) {
@@ -169,7 +189,18 @@ public class Day04 extends AdventOfCode {
 	}
 
 	private int solveTask2 (List<String> input) {
-		return -1;
+		int sectorIdCount = 0;
+		for (String line : input) {
+			RoomData data= parse(line);
+			if (data != null && data.isReal()) {
+				String s= data.getDecrypted();
+//				System.out.println(s);
+				if (s.contains("northpole")) {
+					return data.sectorId;
+				}
+			}
+		}
+		return sectorIdCount;
 	}
 
 }
