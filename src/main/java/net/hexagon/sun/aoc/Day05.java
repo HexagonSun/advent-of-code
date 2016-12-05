@@ -26,6 +26,8 @@ public class Day05 extends AdventOfCode {
 	@Test
 	@Override
 	public void runTask2 () {
+		String solution= "f2c730e5";
+		assertThat(solveTask2("ugkcyxxp"), is(solution));
 	}
 
 	@Test
@@ -35,7 +37,7 @@ public class Day05 extends AdventOfCode {
 
 	@Test
 	public void runTask2Example1() {
-
+		assertThat(solveTask2("abc"), is("05ace8e3"));
 	}
 
 	private String solveTask1 (String doorId) {
@@ -43,35 +45,50 @@ public class Day05 extends AdventOfCode {
 		int cnt= 0;
 		StringBuilder pwd= new StringBuilder();
 		while(true) {
-			if (cnt > 7) {
-				System.out.println("limit reached");
+			if (cnt > 7 || sequence < 0) {
+				System.out.println("limit reached, cnt: " + cnt + " | seq: " + sequence);
 				break;
 			}
 
 			String input= doorId + sequence;
 			md5.update(input.getBytes());
 			byte[] digest = md5.digest();
-//			System.out.println("bytes: " + toHexString(digest));
 			if (digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xF0) == 0) {
 				pwd.append(Integer.toString(digest[2], 16));
 				cnt++;
 			}
 			sequence++;
 		}
-		System.out.println(" PASS IS " + pwd);
 		return pwd.toString();
 	}
 
-	private String toHexString(byte[] data) {
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < data.length; i++) {
-			sb.append(Integer.toString((data[i] & 0xff) + 0x100, 16).substring(1));
-		}
-		return sb.toString();
-	}
+	private String solveTask2 (String doorId) {
+		int sequence= 0;
+		int cnt= 0;
+		char[] pwd= new char[8];
+		while(true) {
+			if (cnt > 7 || sequence < 0) {
+				System.out.println("limit reached, cnt: " + cnt + " | seq: " + sequence);
+				break;
+			}
 
-	private String solveTask2 (String input) {
-		return "-1";
+			String input= doorId + sequence;
+			md5.update(input.getBytes());
+			byte[] digest = md5.digest();
+			if (digest[0] == 0 && digest[1] == 0 && (digest[2] & 0xF0) == 0) {
+				int position= digest[2];
+				if (position > 7 || pwd[position] != 0) {
+					sequence++;
+					continue;
+				}
+
+				int pwdChar= (digest[3] & 0xF0);
+				pwd[position]= Integer.toString(pwdChar, 16).toCharArray()[0];
+				cnt++;
+			}
+			sequence++;
+		}
+		return String.valueOf(pwd);
 	}
 
 }
