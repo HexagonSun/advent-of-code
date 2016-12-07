@@ -38,7 +38,7 @@ public abstract class AdventOfCode {
 
 	protected List<String> getInputLines(String resource) {
 		List<String> list = new ArrayList<>();
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(AdventOfCode.class.getResourceAsStream(resource)))) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(this.getClass().getResourceAsStream(resource)))) {
 			String line;
 			while ((line = reader.readLine()) != null) {
 				list.add(line);

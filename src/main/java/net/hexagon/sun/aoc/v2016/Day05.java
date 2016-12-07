@@ -1,5 +1,6 @@
-package net.hexagon.sun.aoc;
+package net.hexagon.sun.aoc.v2016;
 
+import net.hexagon.sun.aoc.AdventOfCode;
 import org.junit.Test;
 
 import java.security.MessageDigest;
