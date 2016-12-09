@@ -3,6 +3,9 @@ package net.hexagon.sun.aoc.v2016;
 import net.hexagon.sun.aoc.AdventOfCode;
 import org.junit.Test;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
@@ -20,6 +23,9 @@ public class Day09 extends AdventOfCode {
 	@Test
 	@Override
 	public void runTask2 () {
+		long solution= 11558231665L;
+		assertThat(solveTask2(getInputAsString()), is(solution));
+
 	}
 
 	@Test
@@ -51,6 +57,39 @@ public class Day09 extends AdventOfCode {
 	public void runExample6() {
 		assertThat(solveTask1("X(8x2)(3x3)ABCY"), is("X(3x3)ABC(3x3)ABCY"));
 	}
+
+
+
+	@Test
+	public void runTask2Example1() {
+		assertThat(solveTask2("ADVENT"), is(6L));
+	}
+
+	@Test
+	public void runTask2Example2() {
+		assertThat(solveTask2("A(1x5)BC"), is(7L));
+	}
+
+	@Test
+	public void runTask2Example3() {
+		assertThat(solveTask2("(3x3)XYZ"), is(9L));
+	}
+
+	@Test
+	public void runTask2Example4() {
+		assertThat(solveTask2("X(8x2)(3x3)ABCY"), is(20L));
+	}
+
+	@Test
+	public void runTask2Example5() {
+		assertThat(solveTask2("(27x12)(20x12)(13x14)(7x10)(1x12)A"), is(241920L));
+	}
+
+	@Test
+	public void runTask2Example6() {
+		assertThat(solveTask2("(25x3)(3x3)ABC(2x3)XY(5x2)PQRSTX(18x9)(3x2)TWO(5x7)SEVEN"), is(445L));
+	}
+
 
 	private String solveTask1(String input) {
 		boolean inMarker= false;
@@ -109,6 +148,44 @@ public class Day09 extends AdventOfCode {
 
 		}
 		return sb.toString();
+	}
+
+	private long solveTask2(String input) {
+		return decompressedCount(input);
+	}
+
+	private static Pattern MARKER= Pattern.compile("\\((\\d+)x(\\d+)\\)");
+
+	private long decompressedCount(String input) {
+		if (input.isEmpty()) {
+			return 0L;
+		}
+
+		long count= 0L;
+		Matcher m= MARKER.matcher(input);
+		if (m.find()) {
+			int repeatLength= Integer.valueOf(m.group(1));
+			int nbRepeats= Integer.valueOf(m.group(2));
+
+			// add character data up to the first marker
+			count+= input.indexOf('(');
+
+			// check/evaluate subgroup
+			int subgroupStart= input.indexOf(')') + 1;
+			String innerText= input.substring(subgroupStart, subgroupStart + repeatLength);
+			long subgroupCount= decompressedCount(innerText);
+			count+= (subgroupCount * nbRepeats);
+
+			// add character data *after* the first marker: recurse
+			int indexAfter= subgroupStart + repeatLength;
+			String restOfText= input.substring(indexAfter);
+			count+= decompressedCount(restOfText);
+
+		} else {
+			// no marker in this substring
+			count= input.length();
+		}
+		return count;
 	}
 
 }
