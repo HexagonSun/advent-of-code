@@ -15,6 +15,10 @@ import static org.hamcrest.core.Is.is;
 // http://adventofcode.com/2016/day/10
 public class Day10 extends AdventOfCode {
 
+	private enum Type {
+		INITIAL, TASK
+	}
+
 	private static class Bot {
 
 		private final int no;
@@ -68,11 +72,7 @@ public class Day10 extends AdventOfCode {
 		}
 	}
 
-	private enum Type {
-		INITIAL, TASK
-	}
-
-	private class Instruction implements Comparable {
+	private static class Instruction implements Comparable {
 		final Type type;
 		final int botNo;
 
@@ -125,6 +125,16 @@ public class Day10 extends AdventOfCode {
 		}
 	}
 
+	private static class Result {
+		final Map<Integer, Integer> outputs;
+		final Bot responsible;
+
+		Result(Map<Integer, Integer> outputs, Bot responsible) {
+			this.outputs= outputs;
+			this.responsible= responsible;
+		}
+	}
+
 	@Test
 	@Override
 	public void runTask1 () {
@@ -135,6 +145,8 @@ public class Day10 extends AdventOfCode {
 	@Test
 	@Override
 	public void runTask2 () {
+		int solution= 3965;
+		assertThat(solveTask2(getInputLines(),0, 1, 2), is(solution));
 	}
 
 	@Test
@@ -149,13 +161,21 @@ public class Day10 extends AdventOfCode {
 		assertThat(solveTask1(input, 2, 5), is(2));
 	}
 
-
-	@Test
-	public void runTask2Example1() {
-
+	private int solveTask1(List<String> input, int needleLow, int needleHigh) {
+		Result result= solve(input, needleLow, needleHigh);
+		return result.responsible == null ? -1 : result.responsible.no;
 	}
 
-	private int solveTask1(List<String> input, int needleLow, int needleHigh) {
+	private int solveTask2(List<String> input, Integer... bins) {
+		Result result= solve(input, 0, 0);
+		int value= 1;
+		for (Integer i : bins) {
+			value *= result.outputs.getOrDefault(i, 1);
+		}
+		return value;
+	}
+
+	private Result solve(List<String> input, int needleLow, int needleHigh) {
 		List<Instruction> instructions = input.stream()
 												 .map(this::parse)
 												 .sorted()
@@ -239,12 +259,8 @@ public class Day10 extends AdventOfCode {
 //		for (Bot b : bots.values()) {
 //			System.out.println("\t" + b);
 //		}
-		System.out.println("Responsible Bot for needle value was: " + responsible);
-		return responsible == null ? -1 : responsible.no;
-	}
-
-	private int solveTask2(List<String> input) {
-		return -1;
+//		System.out.println("Responsible Bot for needle value was: " + responsible);
+		return new Result(outputs, responsible);
 	}
 
 	private Bot getBot(Map<Integer, Bot> bots, int no) {
