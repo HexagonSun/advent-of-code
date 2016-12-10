@@ -44,7 +44,7 @@ public class Day15 extends AdventOfCode {
 				case 3:
 					return texture;
 				default:
-					return durability;
+					return calories;
 			}
 		}
 	}
@@ -130,13 +130,14 @@ public class Day15 extends AdventOfCode {
 	@Override
 	public void runTask1() {
 		long solution= 222870L;
-		assertThat(solveTask1(getInputLines()), is(solution));
+		assertThat(solve(getInputLines(), -1), is(solution));
 	}
 
 	@Test
 	@Override
 	public void runTask2() {
-
+		long solution= 117936L;
+		assertThat(solve(getInputLines(), 500), is(solution));
 	}
 
 	@Test
@@ -145,10 +146,19 @@ public class Day15 extends AdventOfCode {
 				"Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8",
 				"Cinnamon: capacity 2, durability 3, flavor -2, texture -1, calories 3");
 		long solution= 62842880L;
-		assertThat(solveTask1(input), is(solution));
+		assertThat(solve(input, -1), is(solution));
 	}
 
-	private long solveTask1(List<String> input) {
+	@Test
+	public void runTask2Example1() {
+		List<String> input = Arrays.asList(
+				"Butterscotch: capacity -1, durability -2, flavor 6, texture 3, calories 8",
+				"Cinnamon: capacity 2, durability 3, flavor -2, texture -1, calories 3");
+		long solution= 57600000L;
+		assertThat(solve(input, 500), is(solution));
+	}
+
+	private long solve (List<String> input, int calorieRestriction) {
 		List<Ingredient> ingredients = parse(input);
 		int len = ingredients.size();
 		Set<Set<Integer>> partitions = new Partitioner(len).partition(100);
@@ -159,7 +169,7 @@ public class Day15 extends AdventOfCode {
 			Optional<Long> maxOfCombinations= Permutator.of(t)
 													  .map(s -> s.collect(Collectors.toList()))
 //													  .peek(x -> System.out.println("combination x: " + x))
-													  .map(combination -> calculateScore(ingredients, combination))
+													  .map(combination -> calculateScore(ingredients, combination, calorieRestriction))
 //													  .peek(s -> System.out.println("score: " + s))
 													  .max(Comparator.naturalOrder());
 			if (maxOfCombinations.isPresent()) {
@@ -172,7 +182,15 @@ public class Day15 extends AdventOfCode {
 		return maxScore;
 	}
 
-	private long calculateScore(List<Ingredient> ingredients, List<Integer> combination) {
+	private long calculateScore(List<Ingredient> ingredients, List<Integer> combination, int calorieRestriction) {
+		if (calorieRestriction >= 0) {
+			// index >=4 -> calories
+			long totalCalories= getTotal(4, ingredients, combination);
+			if (totalCalories != calorieRestriction) {
+				return 0L;
+			}
+		}
+
 		// index 0 -> capacity
 		// index 1 -> durability
 		// index 2 -> flavor
