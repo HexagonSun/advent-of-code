@@ -89,6 +89,8 @@ public class Day12 extends AdventOfCode {
 	@Test
 	@Override
 	public void runTask2 () {
+		int solution= 9227737;
+		assertThat(solveTask2(getInputLines()), is(solution));
 	}
 
 	@Test
@@ -105,6 +107,16 @@ public class Day12 extends AdventOfCode {
 
 	private int solveTask1(List<String> inputLines) {
 		Computer computer= new Computer();
+		return solve(inputLines, computer);
+	}
+
+	private int solveTask2(List<String> inputLines) {
+		Computer computer= new Computer();
+		computer.registers.put("c", 1);
+		return solve(inputLines, computer);
+	}
+
+	private int solve(List<String> inputLines, Computer computer) {
 		List<Command> commands = inputLines.stream().map(this::parse).collect(Collectors.toList());
 		for (int i = 0; i < commands.size();) {
 			if (i >= commands.size()) {
