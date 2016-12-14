@@ -42,10 +42,8 @@ public class Day14 extends AdventOfCode {
 
 	@Test
 	public void runTask2InitialHash() {
-
 		md5.update("abc0".getBytes());
 		byte[] plus1000digest = md5.digest();
-		System.out.println("first hash is " + digestToString(plus1000digest));
 
 		// repeat 2016 times more
 		for (int j = 0; j < 2016; j++) {
@@ -54,7 +52,7 @@ public class Day14 extends AdventOfCode {
 			plus1000digest= md5.digest();
 		}
 
-		System.out.println("strechted first hash is " + digestToString(plus1000digest));
+//		System.out.println("strechted first hash is " + digestToString(plus1000digest));
 		assertThat(digestToString(plus1000digest), is("a107ff634856bb300138cac6568c0f24"));
 	}
 
@@ -67,9 +65,6 @@ public class Day14 extends AdventOfCode {
 	public void testDigestToNextHash() {
 		md5.update("abc0".getBytes());
 		byte[] initialHash = md5.digest();
-
-		System.out.println("initialHash is " + digestToString(initialHash));
-
 
 		byte[] toStringGetBytes= digestToString(initialHash).getBytes();
 		byte[] nextRawBytes= digestToNextHash(initialHash);
@@ -123,7 +118,7 @@ public class Day14 extends AdventOfCode {
 			index++;
 		}
 
-		System.out.println("last real hash is " + digestToString(lastRealHash));
+//		System.out.println("last real hash is " + digestToString(lastRealHash));
 		// -1 because the last execution of the while loop does index++
 		return index - 1;
 	}
