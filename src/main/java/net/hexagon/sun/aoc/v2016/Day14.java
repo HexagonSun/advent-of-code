@@ -31,7 +31,7 @@ public class Day14 extends AdventOfCode {
 	@Override
 	public void runTask2 () {
 		String input= "ihaygndm";
-		int solution= 1;
+		int solution= 19968;
 		assertThat(solveTask2(input), is(solution));
 	}
 
@@ -41,13 +41,52 @@ public class Day14 extends AdventOfCode {
 	}
 
 	@Test
+	public void runTask2InitialHash() {
+
+		md5.update("abc0".getBytes());
+		byte[] plus1000digest = md5.digest();
+		System.out.println("first hash is " + digestToString(plus1000digest));
+
+		// repeat 2016 times more
+		for (int j = 0; j < 2016; j++) {
+//			md5.update(digestToString(plus1000digest).getBytes());
+			md5.update(digestToNextHash(plus1000digest));
+			plus1000digest= md5.digest();
+		}
+
+		System.out.println("strechted first hash is " + digestToString(plus1000digest));
+		assertThat(digestToString(plus1000digest), is("a107ff634856bb300138cac6568c0f24"));
+	}
+
+	@Test
 	public void runTask2Example1() {
-		assertThat(solveTask2("abc"), is(-1));
+		assertThat(solveTask2("abc"), is(22551));
+	}
+
+	@Test
+	public void testDigestToNextHash() {
+		md5.update("abc0".getBytes());
+		byte[] initialHash = md5.digest();
+
+		System.out.println("initialHash is " + digestToString(initialHash));
+
+
+		byte[] toStringGetBytes= digestToString(initialHash).getBytes();
+		byte[] nextRawBytes= digestToNextHash(initialHash);
+		assertThat(nextRawBytes, is(toStringGetBytes));
 	}
 
 	private int solveTask1(String salt) {
+		return solve(salt, false);
+	}
+
+	private int solveTask2 (String salt) {
+		return solve(salt, true);
+	}
+
+	private int solve(String salt, boolean keyStretching) {
 		List<byte[]> hashes= new ArrayList<>();
-		prefill(hashes, salt);
+		prefill(hashes, salt, keyStretching);
 
 		byte[] lastRealHash= null;
 		int index= 0;
@@ -55,6 +94,13 @@ public class Day14 extends AdventOfCode {
 		while (nbRealHashes < 64) {
 			md5.update((salt + (index + 1001)).getBytes());
 			byte[] plus1000digest = md5.digest();
+			if (keyStretching) {
+				// repeat 2016 times more
+				for (int j = 0; j < 2016; j++) {
+					md5.update(digestToNextHash(plus1000digest));
+					plus1000digest= md5.digest();
+				}
+			}
 			hashes.add(plus1000digest);
 
 			// now check @index. If a match is found, we can just loop through "hashes" because we know it contains the 1000 next hashes
@@ -82,16 +128,19 @@ public class Day14 extends AdventOfCode {
 		return index - 1;
 	}
 
-	private void prefill(List<byte[]> hashes, String salt) {
+	private void prefill(List<byte[]> hashes, String salt, boolean keyStretching) {
 		for (int i = 0; i <= 1000; i++) {
 			md5.update((salt + i).getBytes());
 			byte[] digest = md5.digest();
+			if (keyStretching) {
+				// repeat 2016 times more
+				for (int j = 0; j < 2016; j++) {
+					md5.update(digestToNextHash(digest));
+					digest= md5.digest();
+				}
+			}
 			hashes.add(digest);
 		}
-	}
-
-	private int solveTask2 (String salt) {
-		return -1;
 	}
 
 	private char hasConsecutiveChars(byte[] digest) {
@@ -174,6 +223,28 @@ public class Day14 extends AdventOfCode {
 			}
 		}
 		return false;
+	}
+
+	private byte[] digestToNextHash(byte[] digest) {
+		byte[] hash= new byte[32];
+		for (int i = 0; i < digest.length; i++) {
+			int b= digest[i];
+			int highNibble= (b & 0xf0) >> 4;
+			int lowNibble= (b & 0x0f);
+
+			char highOffset= '0';
+			if (highNibble >= 10) {
+				highOffset= 'W';
+			}
+			char lowOffset= '0';
+			if (lowNibble >= 10) {
+				lowOffset= 'W';
+			}
+//			System.out.println("\t+'0': highNibble: " + (highOffset + highNibble) + " | lowNibble: " + (lowOffset + lowNibble));
+			hash[2*i]    = (byte)(highOffset + highNibble);
+			hash[2*i + 1]= (byte)(lowOffset + lowNibble);
+		}
+		return hash;
 	}
 
 	// for debugging
