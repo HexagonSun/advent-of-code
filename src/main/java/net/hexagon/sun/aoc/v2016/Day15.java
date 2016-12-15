@@ -36,14 +36,16 @@ public class Day15 extends AdventOfCode {
 	@Override
 	public void runTask1 () {
 		int solution= 122318;
-		assertThat(solveTask1(getInputLines()), is(solution));
+		assertThat(solve(getInputLines()), is(solution));
 	}
 
 	@Test
 	@Override
 	public void runTask2 () {
-		int solution= -1;
-		assertThat(solveTask2(getInputLines()), is(solution));
+		int solution= 3208583;
+		List<String> input = getInputLines();
+		input.add("Disc #7 has 11 positions; at time=0, it is at position 0.");
+		assertThat(solve(input), is(solution));
 	}
 
 	@Test
@@ -52,10 +54,10 @@ public class Day15 extends AdventOfCode {
 				"Disc #1 has 5 positions; at time=0, it is at position 4.",
 				"Disc #2 has 2 positions; at time=0, it is at position 1.");
 		int solution= 5;
-		assertThat(solveTask1(input), is(solution));
+		assertThat(solve(input), is(solution));
 	}
 
-	private int solveTask1(List<String> input) {
+	private int solve(List<String> input) {
 		List<Disc> discs= parse(input);
 		System.out.println("got discs: ");
 		print(discs);
@@ -83,10 +85,6 @@ public class Day15 extends AdventOfCode {
 			}
 			time++;
 		}
-	}
-
-	private int solveTask2 (List<String> input) {
-		return -1;
 	}
 
 	private void print(List<Disc> discs) {
