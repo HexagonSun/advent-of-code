@@ -20,8 +20,8 @@ public class Day16 extends AdventOfCode {
 	@Test
 	@Override
 	public void runTask2() {
-		int solution = -1;
-		assertThat(solve(1, ""), is(solution));
+		String solution = "01100111101101111";
+		assertThat(solve(35651584, "10001110011110000"), is(solution));
 	}
 
 	@Test
@@ -52,20 +52,18 @@ public class Day16 extends AdventOfCode {
 
 	@Test
 	public void runExample1() {
-		int len = 20;
-		String input = "10000";
-		String solution = "01100";
+		int len= 20;
+		String input= "10000";
+		String solution= "01100";
 		assertThat(solve(len, input), is(solution));
 	}
 
 	private String solve(int len, String input) {
-		String data = input;
+		String data= input;
 		while (data.length() < len) {
-			data = step(data);
+			data= step(data);
 		}
-//		System.out.println("data that fits disc: \"" + data + "\" (len: " + data.length() + ")");
-		data = data.substring(0, len);
-//		System.out.println("\tcapped: " + data);
+		data= data.substring(0, len);
 		return checksum(data);
 	}
 
@@ -80,13 +78,13 @@ public class Day16 extends AdventOfCode {
 	}
 
 	private String checksum(String input) {
-		String checksum = input;
+		String checksum= input;
 		while (true) {
-			StringBuilder checksumChars = new StringBuilder();
-			char[] chars = checksum.toCharArray();
+			StringBuilder checksumChars= new StringBuilder();
+			char[] chars= checksum.toCharArray();
 			for (int i = 0; i < chars.length - 1; i += 2) {
-				char a = chars[i];
-				char b = chars[i + 1];
+				char a= chars[i];
+				char b= chars[i + 1];
 				checksumChars.append(a == b ? '1' : '0');
 			}
 			checksum= checksumChars.toString();
