@@ -7,7 +7,10 @@ import java.awt.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -108,7 +111,7 @@ public class Day17 extends AdventOfCode {
 	@Override
 	public void runTask2 () {
 		String input= "edjrjqaa";
-		int solution= -1;
+		int solution= 502;
 		assertThat(solveTask2(input), is(solution));
 	}
 
@@ -126,39 +129,50 @@ public class Day17 extends AdventOfCode {
 	}
 	@Test
 	public void runExample4() {
-		// ulqzkmivDRDDRR
-
 		assertThat(solveTask1("ulqzkmiv"), is("DRURDRUDDLLDLUURRDULRLDUUDDDRR"));
 	}
 
 	@Test
 	public void runTask2Example1() {
-		assertThat(solveTask2("abc"), is(22551));
+		assertThat(solveTask2("ihgpwlah"), is(370));
+	}
+	@Test
+	public void runTask2Example2() {
+		assertThat(solveTask2("kglvqrro"), is(492));
+	}
+	@Test
+	public void runTask2Example3() {
+		assertThat(solveTask2("ulqzkmiv"), is(830));
 	}
 
 	private String solveTask1(String salt) {
-		return solve(salt, new Point(1,1), new Point(4,4));
+		return solve(salt, new Point(1,1), new Point(4,4), true);
 	}
 
-	private String solveTask2 (String salt) {
-		return solve(salt, new Point(1,1), new Point(4,4));
+	private int solveTask2 (String salt) {
+		String longestPath = solve(salt, new Point(1, 1), new Point(4, 4), false);
+		return longestPath.length();
 	}
 
-	private String solve(String salt, Point startLocation, Point targetLocation) {
+	private String solve(String salt, Point startLocation, Point targetLocation, boolean findShortest) {
 		Path start= new Path(startLocation, salt);
 
 		LinkedList<Path> queue = new LinkedList<>();
 		queue.add(start);
 
-		int cnt= 0;
+		List<Path> targetPaths= new ArrayList<>();
 		Path lastPoint= null;
-		while (!queue.isEmpty() && cnt < 1000) {
+		while (!queue.isEmpty()) {
 			lastPoint= queue.poll();
 			if (lastPoint.location.equals(targetLocation)) {
-				break;
+				targetPaths.add(lastPoint);
+				if (findShortest) {
+					break;
+				} else {
+					continue;
+				}
 			}
 
-			cnt++;
 			String hash= calculateHash(lastPoint);
 
 			ArrayList<Path> possibleMoves = new ArrayList<>();
@@ -169,16 +183,29 @@ public class Day17 extends AdventOfCode {
 
 			for (Path move : possibleMoves) {
 				if (move.isValid(hash)) {
-//					System.out.println("adding move " + move);
 					queue.add(move);
 				}
 			}
 		}
 		System.out.println("Finished, lastPoint is " + lastPoint);
+		if (!findShortest) {
+			Optional<Path> max = targetPaths.stream().max(Comparator.comparingInt(a -> a.path.length()));
+			if (max.isPresent()) {
+				System.out.println("Longest: " + max.get());
+				return stripSalt(salt, max.get());
+			} else {
+				System.out.println("No longest path found");
+				return "";
+			}
+		}
 		if (lastPoint == null || !lastPoint.location.equals(targetLocation)) {
 			return "";
 		}
-		return lastPoint.path.substring(salt.length());
+		return stripSalt(salt, lastPoint);
+	}
+
+	private String stripSalt(String salt, Path point) {
+		return point.path.substring(salt.length());
 	}
 
 	private String calculateHash(Path point) {
@@ -187,7 +214,6 @@ public class Day17 extends AdventOfCode {
 		return digestToString(digest);
 	}
 
-	// for debugging
 	private static String digestToString(byte[] digest) {
 		StringBuilder sb = new StringBuilder();
 		for (byte d : digest) {
