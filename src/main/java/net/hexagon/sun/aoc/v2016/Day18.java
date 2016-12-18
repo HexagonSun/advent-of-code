@@ -13,26 +13,26 @@ public class Day18 extends AdventOfCode {
 	@Override
 	public void runTask1 () {
 		int solution= 1963;
-		assertThat(solveTask1(getInputAsString(), 40), is(solution));
+		assertThat(solve(getInputAsString(), 40), is(solution));
 	}
 
 	@Test
 	@Override
 	public void runTask2 () {
-//		int solution= 1;
-//		assertThat(solveTask2(getInputAsString()), is(solution));
+		int solution= 20009568;
+		assertThat(solve(getInputAsString(), 400000), is(solution));
 	}
 
 	@Test
 	public void runExample1() {
-		assertThat(solveTask1("..^^.", 3), is(6));
+		assertThat(solve("..^^.", 3), is(6));
 	}
 	@Test
 	public void runExample2() {
-		assertThat(solveTask1(".^^.^.^^^^", 10), is(38));
+		assertThat(solve(".^^.^.^^^^", 10), is(38));
 	}
 
-	private int solveTask1 (String input, int nbRows) {
+	private int solve(String input, int nbRows) {
 		boolean debugPrint= false;
 		int safeTiles= 0;
 		char[] line= input.toCharArray();
@@ -83,10 +83,6 @@ public class Day18 extends AdventOfCode {
 
 
 		return safeTiles;
-	}
-
-	private int solveTask2 (String input) {
-		return -1;
 	}
 
 }
