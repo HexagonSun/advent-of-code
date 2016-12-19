@@ -3,7 +3,9 @@ package net.hexagon.sun.aoc.v2016;
 import net.hexagon.sun.aoc.AdventOfCode;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -15,26 +17,51 @@ public class Day19 extends AdventOfCode {
 	@Override
 	public void runTask1 () {
 		int solution= 1834471;
-		assertThat(solve(3014387), is(solution));
+		assertThat(solveTask1(3014387), is(solution));
 	}
 
 	@Test
 	@Override
 	public void runTask2 () {
-//		int solution= 1;
-//		assertThat(solve(3014387, 400000), is(solution));
+		int solution= 1420064;
+		assertThat(solveTask2(3014387), is(solution));
 	}
 
 	@Test
 	public void runExample1() {
-		assertThat(solve(5), is(3));
-	}
-	@Test
-	public void runExample2() {
-		assertThat(solve(7), is(7));
+		assertThat(solveTask1(5), is(3));
 	}
 
-	private int solve(int nbElves) {
+	@Test
+	public void runExample2() {
+		assertThat(solveTask1(7), is(7));
+	}
+
+	@Test
+	public void runTask2Example1() {
+		assertThat(solveTask2(5), is(2));
+	}
+
+	@Test
+	public void runTask2Example2() {
+		assertThat(solveTask2(4), is(1));
+	}
+
+	@Test
+	public void runTask2Example3() {
+		assertThat(solveTask2(3), is(3));
+	}
+
+	@Test
+	public void runTask2Example4() {
+		assertThat(solveTask2(6), is(3));
+
+		for(int i = 1; i < 20; i++) {
+			System.out.println(i + " -> " + solveTask2(i));
+		}
+	}
+
+	private int solveTask1(int nbElves) {
 		boolean[] elves= new boolean[nbElves];
 		Arrays.fill(elves, true);
 
@@ -77,6 +104,39 @@ public class Day19 extends AdventOfCode {
 			}
 		}
 		return presentsStolen;
+	}
+
+	private int solveTask2(int nbElves) {
+		List<Integer> elves= new ArrayList<>();
+		for (int i = 1; i <= nbElves; i++) {
+			elves.add(i);
+		}
+
+		int turns= 0;
+		int index= 0;
+		while (true) {
+			int len = elves.size();
+			turns++;
+			if (turns > 1000) {
+				System.out.println("len is : " + len);
+				turns= 0;
+			}
+			if (elves.size() == 1) {
+				break;
+			}
+
+			// do the turn
+			int indexToRemove= (index + (len / 2)) % len;
+			elves.remove(indexToRemove);
+
+			if (indexToRemove < index) {
+				// removed elf before this node -> adjust index
+				index--;
+			}
+			index++;
+			index= index % elves.size();
+		}
+		return elves.get(0);
 	}
 
 }
