@@ -14,39 +14,17 @@ import static org.hamcrest.core.Is.is;
 public class Day21 extends AdventOfCode {
 
 	private enum Instruction implements BiFunction<Instruction, Instruction, Instruction> {
-		SWAP_POSITION 		((String s, Param param) -> swapAtPos(s, param.x, param.y)),
-		SWAP_LETTER 		((String s, Param param) -> {
-			int idx1= s.indexOf(param.a);
-			int idx2= s.indexOf(param.b);
-			return swapAtPos(s, idx1, idx2);
-		}),
-		ROTATE_LEFT 		((String s, Param param) -> rotateLeft(s, param.x)),
-		ROTATE_RIGHT 		((String s, Param param) -> rotateRight(s, param.x)),
-		ROTATE_LETTER_BASED ((String s, Param param) -> {
-			// TODO
-			int idx= s.indexOf(param.a);
-			if (idx >= 4) {
-				// one additional if at least index 4
-				idx++;
-			}
-			// initial rotation
-			idx++;
-			return rotateRight(s, idx);
-		}),
-		REVERSE 			((String s, Param param) -> {
-			String prefix= s.substring(0, param.x);
-			String middle= s.substring(param.x, param.y + 1);
-			String suffix= s.substring(param.y + 1);
-			return prefix + new StringBuilder(middle).reverse().toString() + suffix;
-		}),
-		MOVE 				((String s, Param param) -> {
-			int x= param.x;
-			char atIndex= s.charAt(x);
-			String removed= s.substring(0, x) + s.substring(x+1);
-			// insert
-			int y= param.y;
-			return removed.substring(0, y) + atIndex + removed.substring(y);
-		});
+		SWAP_POSITION 		(Instruction::swapAtPos),
+		SWAP_LETTER 		(Instruction::swapLetter),
+		ROTATE_LEFT 		(Instruction::rotateLeft),
+		ROTATE_RIGHT 		(Instruction::rotateRight),
+		ROTATE_LETTER_BASED (Instruction::rotateLetterBased),
+		REVERSE 			(Instruction::reverse),
+		MOVE 				(Instruction::move);
+
+		private static String swapAtPos(String s, Param param) {
+			return swapAtPos(s, param.x, param.y);
+		}
 
 		private static String swapAtPos(String s, int x, int y) {
 			char[] c= s.toCharArray();
@@ -54,6 +32,25 @@ public class Day21 extends AdventOfCode {
 			c[x]= c[y];
 			c[y]= tmp;
 			return String.valueOf(c);
+		}
+
+		private static String swapLetter(String s, Param param) {
+			int idx1= s.indexOf(param.a);
+			int idx2= s.indexOf(param.b);
+			return swapAtPos(s, idx1, idx2);
+		}
+
+		static String rotateLeft(String s, Param param) {
+			return rotateLeft(s, param.x);
+		}
+
+		static String rotateLeft(String s, int offset) {
+			int i= offset % s.length();
+			return s.substring(i) + s.substring(0, i);
+		}
+
+		static String rotateRight(String s, Param param) {
+			return rotateRight(s, param.x);
 		}
 
 		static String rotateRight(String s, int offset) {
@@ -64,9 +61,31 @@ public class Day21 extends AdventOfCode {
 			return part1 + part2;
 		}
 
-		static String rotateLeft(String s, int offset) {
-			int i= offset % s.length();
-			return s.substring(i) + s.substring(0, i);
+		private static String rotateLetterBased(String s, Param param) {
+			int idx= s.indexOf(param.a);
+			if (idx >= 4) {
+				// one additional if at least index 4
+				idx++;
+			}
+			// initial rotation
+			idx++;
+			return rotateRight(s, idx);
+		}
+
+		private static String reverse(String s, Param param) {
+			String prefix= s.substring(0, param.x);
+			String middle= s.substring(param.x, param.y + 1);
+			String suffix= s.substring(param.y + 1);
+			return prefix + new StringBuilder(middle).reverse().toString() + suffix;
+		}
+
+		private static String move(String s, Param param) {
+			int x= param.x;
+			char atIndex= s.charAt(x);
+			String removed= s.substring(0, x) + s.substring(x+1);
+			// insert
+			int y= param.y;
+			return removed.substring(0, y) + atIndex + removed.substring(y);
 		}
 
 		private static class Param {
@@ -114,7 +133,7 @@ public class Day21 extends AdventOfCode {
 	@Override
 	public void runTask2 () {
 		String solution= "";
-		assertThat(solveTask2("abcdefgh", getInputLines()), is(solution));
+		assertThat(solveTask2("fbgdceah", getInputLines()), is(solution));
 	}
 
 	@Test
@@ -134,10 +153,15 @@ public class Day21 extends AdventOfCode {
 	@Test
 	public void runTask2Example1() {
 		List<String> input= Arrays.asList(
-				"5-8",
-				"0-2",
-				"4-7");
-		assertThat(solveTask2("abcde", input), is(""));
+				"swap position 4 with position 0",
+				"swap letter d with letter b",
+				"reverse positions 0 through 4",
+				"rotate left 1 step",
+				"move position 1 to position 4",
+				"move position 3 to position 0",
+				"rotate based on position of letter b",
+				"rotate based on position of letter d");
+		assertThat(solveTask2("decab", input), is("abcde"));
 	}
 
 
