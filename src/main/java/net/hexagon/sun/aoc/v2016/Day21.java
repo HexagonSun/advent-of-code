@@ -22,8 +22,8 @@ public class Day21 extends AdventOfCode {
 		REVERSE 			(Instruction::reverse),
 		MOVE 				(Instruction::move);
 
-		private static String swapAtPos(String s, Param param) {
-			return swapAtPos(s, param.x, param.y);
+		private static String swapAtPos(String s, Instruction instruction) {
+			return swapAtPos(s, instruction.x, instruction.y);
 		}
 
 		private static String swapAtPos(String s, int x, int y) {
@@ -34,14 +34,14 @@ public class Day21 extends AdventOfCode {
 			return String.valueOf(c);
 		}
 
-		private static String swapLetter(String s, Param param) {
-			int idx1= s.indexOf(param.a);
-			int idx2= s.indexOf(param.b);
+		private static String swapLetter(String s, Instruction instruction) {
+			int idx1= s.indexOf(instruction.a);
+			int idx2= s.indexOf(instruction.b);
 			return swapAtPos(s, idx1, idx2);
 		}
 
-		static String rotateLeft(String s, Param param) {
-			return rotateLeft(s, param.x);
+		static String rotateLeft(String s, Instruction instruction) {
+			return rotateLeft(s, instruction.x);
 		}
 
 		static String rotateLeft(String s, int offset) {
@@ -49,8 +49,8 @@ public class Day21 extends AdventOfCode {
 			return s.substring(i) + s.substring(0, i);
 		}
 
-		static String rotateRight(String s, Param param) {
-			return rotateRight(s, param.x);
+		static String rotateRight(String s, Instruction instruction) {
+			return rotateRight(s, instruction.x);
 		}
 
 		static String rotateRight(String s, int offset) {
@@ -61,8 +61,8 @@ public class Day21 extends AdventOfCode {
 			return part1 + part2;
 		}
 
-		private static String rotateLetterBased(String s, Param param) {
-			int idx= s.indexOf(param.a);
+		private static String rotateLetterBased(String s, Instruction instruction) {
+			int idx= s.indexOf(instruction.a);
 			if (idx >= 4) {
 				// one additional if at least index 4
 				idx++;
@@ -72,52 +72,38 @@ public class Day21 extends AdventOfCode {
 			return rotateRight(s, idx);
 		}
 
-		private static String reverse(String s, Param param) {
-			String prefix= s.substring(0, param.x);
-			String middle= s.substring(param.x, param.y + 1);
-			String suffix= s.substring(param.y + 1);
+		private static String reverse(String s, Instruction instruction) {
+			String prefix= s.substring(0, instruction.x);
+			String middle= s.substring(instruction.x, instruction.y + 1);
+			String suffix= s.substring(instruction.y + 1);
 			return prefix + new StringBuilder(middle).reverse().toString() + suffix;
 		}
 
-		private static String move(String s, Param param) {
-			int x= param.x;
+		private static String move(String s, Instruction instruction) {
+			int x= instruction.x;
 			char atIndex= s.charAt(x);
 			String removed= s.substring(0, x) + s.substring(x+1);
 			// insert
-			int y= param.y;
+			int y= instruction.y;
 			return removed.substring(0, y) + atIndex + removed.substring(y);
 		}
 
-		private static class Param {
-			int x;
-			int y;
-			char a;
-			char b;
-
-			Param(Instruction instruction) {
-				this.x= instruction.x;
-				this.y= instruction.y;
-				this.a= instruction.a;
-				this.b= instruction.b;
-			}
-		}
-
-		private final BiFunction<String, Param, String> function;
+		private final BiFunction<String, Instruction, String> function;
 		public String input;
 		int x;
 		int y;
 		char a;
 		char b;
 
-		Instruction(BiFunction<String, Param, String> function) {
+		Instruction(BiFunction<String, Instruction, String> function) {
 			this.function= function;
 		}
 
 		@Override
 		public Instruction apply(Instruction partial, Instruction next) {
-//			System.out.print("applying, partial=" + partial + " || input: " + partial.input + " || next: " + next);
-			partial.input= next.function.apply(partial.input, new Param(this));
-//			System.out.println(" || --> outcome: " + partial.input);
+			System.out.print("applying, partial=" + partial + " || input: " + partial.input + " || next: " + next);
+			partial.input= next.function.apply(partial.input, this);
+			System.out.println(" || --> outcome: " + partial.input);
 			return partial;
 		}
 	}
@@ -176,6 +162,10 @@ public class Day21 extends AdventOfCode {
 		return result.input;
 	}
 
+	private String solveTask2(String start, List<String> input) {
+		return "";
+	}
+
 	private Instruction parse(String line) {
 		Instruction instruction;
 		String[] tokens= line.split(" ");
@@ -212,8 +202,4 @@ public class Day21 extends AdventOfCode {
 		return instruction;
 	}
 
-	private String solveTask2(String start, List<String> input) {
-
-		return "";
-	}
 }
