@@ -4,6 +4,7 @@ import net.hexagon.sun.aoc.AdventOfCode;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 
@@ -41,15 +42,21 @@ public class Day21 extends AdventOfCode {
 		}
 
 		static String rotateLeft(String s, Instruction instruction) {
+			if (instruction.reversed) {
+				return rotateRight(s, instruction.x);
+			}
 			return rotateLeft(s, instruction.x);
 		}
 
-		static String rotateLeft(String s, int offset) {
+		private static String rotateLeft(String s, int offset) {
 			int i= offset % s.length();
 			return s.substring(i) + s.substring(0, i);
 		}
 
 		static String rotateRight(String s, Instruction instruction) {
+			if (instruction.reversed) {
+				return rotateLeft(s, instruction.x);
+			}
 			return rotateRight(s, instruction.x);
 		}
 
@@ -61,8 +68,15 @@ public class Day21 extends AdventOfCode {
 			return part1 + part2;
 		}
 
+		final static int[] reverseLookup = { 1, 1, 6, 2, 7, 3, 0, 4 };
+
 		private static String rotateLetterBased(String s, Instruction instruction) {
 			int idx= s.indexOf(instruction.a);
+			if (instruction.reversed) {
+				idx= reverseLookup[idx];
+				return rotateLeft(s, idx);
+			}
+
 			if (idx >= 4) {
 				// one additional if at least index 4
 				idx++;
@@ -80,16 +94,17 @@ public class Day21 extends AdventOfCode {
 		}
 
 		private static String move(String s, Instruction instruction) {
-			int x= instruction.x;
+			int x= instruction.reversed ? instruction.y : instruction.x;
 			char atIndex= s.charAt(x);
 			String removed= s.substring(0, x) + s.substring(x+1);
 			// insert
-			int y= instruction.y;
+			int y= instruction.reversed ? instruction.x : instruction.y;
 			return removed.substring(0, y) + atIndex + removed.substring(y);
 		}
 
 		private final BiFunction<String, Instruction, String> function;
 		public String input;
+		boolean reversed;
 		int x;
 		int y;
 		char a;
@@ -101,7 +116,8 @@ public class Day21 extends AdventOfCode {
 
 		@Override
 		public Instruction apply(Instruction partial, Instruction next) {
-			System.out.print("applying, partial=" + partial + " || input: " + partial.input + " || next: " + next);
+			this.reversed= partial.reversed;
+			System.out.print("applying, partial=" + partial + " || input: " + partial.input + " || next: " + next + " || reversed: " + partial.reversed);
 			partial.input= next.function.apply(partial.input, this);
 			System.out.println(" || --> outcome: " + partial.input);
 			return partial;
@@ -118,7 +134,7 @@ public class Day21 extends AdventOfCode {
 	@Test
 	@Override
 	public void runTask2 () {
-		String solution= "";
+		String solution= "bcfaegdh";
 		assertThat(solveTask2("fbgdceah", getInputLines()), is(solution));
 	}
 
@@ -150,10 +166,59 @@ public class Day21 extends AdventOfCode {
 		assertThat(solveTask2("decab", input), is("abcde"));
 	}
 
+	@Test
+	public void runTask2Example2() {
+		List<String> input= Collections.singletonList("rotate based on position of letter d");
+		assertThat(solveTask2("decab", input), is("ecabd"));
+	}
+
+	@Test
+	public void runTask2Example3() {
+		List<String> input= Collections.singletonList("rotate based on position of letter b");
+		assertThat(solveTask2("ecabd", input), is("abdec"));
+	}
+
+	@Test
+	public void runTask2Example4() {
+		List<String> input= Collections.singletonList("move position 3 to position 0");
+		assertThat(solveTask2("abdec", input), is("bdeac"));
+	}
+
+	@Test
+	public void runTask2Example5() {
+		List<String> input= Collections.singletonList("move position 1 to position 4");
+		assertThat(solveTask2("bdeac", input), is("bcdea"));
+	}
+
+	@Test
+	public void runTask2Example6() {
+		List<String> input= Collections.singletonList("rotate left 1 step");
+		assertThat(solveTask2("bcdea", input), is("abcde"));
+	}
+
+	@Test
+	public void runTask2Example7() {
+		List<String> input= Collections.singletonList("reverse positions 0 through 4");
+		assertThat(solveTask2("abcde", input), is("edcba"));
+	}
+
+	@Test
+	public void runTask2Example8() {
+		List<String> input= Collections.singletonList("swap letter d with letter b");
+		assertThat(solveTask2("edcba", input), is("ebcda"));
+	}
+
+	@Test
+	public void runTask2Example9() {
+		List<String> input= Collections.singletonList("swap position 4 with position 0");
+		assertThat(solveTask2("ebcda", input), is("abcde"));
+	}
+
 
 	private String solveTask1(String start, List<String> input) {
 		Instruction initial = Instruction.REVERSE;
 		initial.input= start;
+		initial.reversed= false;
 		Instruction result= input.stream()
 								   .map(this::parse)
 								   .reduce(initial, (partial, next) -> next.apply(partial, next));
@@ -163,7 +228,17 @@ public class Day21 extends AdventOfCode {
 	}
 
 	private String solveTask2(String start, List<String> input) {
-		return "";
+		Collections.reverse(input);
+
+		Instruction initial = Instruction.REVERSE;
+		initial.input= start;
+		initial.reversed= true;
+		Instruction result= input.stream()
+									.map(this::parse)
+									.reduce(initial, (partial, next) -> next.apply(partial, next));
+
+		System.out.println("finished, final state: : " + result.input);
+		return result.input;
 	}
 
 	private Instruction parse(String line) {
