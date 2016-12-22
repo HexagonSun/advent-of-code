@@ -23,6 +23,7 @@ public class Day19 extends AdventOfCode {
 	@Test
 	@Override
 	public void runTask2 () {
+		// brute force!
 		int solution= 1420064;
 		assertThat(solveTask2(3014387), is(solution));
 	}
@@ -55,10 +56,6 @@ public class Day19 extends AdventOfCode {
 	@Test
 	public void runTask2Example4() {
 		assertThat(solveTask2(6), is(3));
-
-		for(int i = 1; i < 20; i++) {
-			System.out.println(i + " -> " + solveTask2(i));
-		}
 	}
 
 	private int solveTask1(int nbElves) {
