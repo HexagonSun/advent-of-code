@@ -59,13 +59,6 @@ public class Day22 extends AdventOfCode {
 		assertThat(solveTask2(getInputLines()), is(solution));
 	}
 
-
-	@Test
-	public void runTask2Example1() {
-		String solution= "";
-		assertThat(solveTask2(getInputLines()), is(solution));
-	}
-
 	private int solveTask1(List<String> inputLines) {
 		List<Node> nodes= inputLines.stream()
 								  .filter(line -> line.startsWith("/dev/"))
@@ -90,7 +83,25 @@ public class Day22 extends AdventOfCode {
 	}
 
 	private String solveTask2(List<String> inputLines) {
+		List<Node> nodes= inputLines.stream()
+								  .filter(line -> line.startsWith("/dev/"))
+								  .map(this::parse)
+								  .collect(Collectors.toList());
+		print(nodes);
 		return "";
+	}
+
+	private void print(List<Node> nodes) {
+		for (Node n : nodes) {
+			if (n.percentage < 10) {
+				System.out.print(" ");
+			}
+			System.out.print(" " + n.percentage + "%");
+
+			if (n.y == 29) {
+				System.out.println("");
+			}
+		}
 	}
 
 	private boolean viable(Node a, Node b) {
