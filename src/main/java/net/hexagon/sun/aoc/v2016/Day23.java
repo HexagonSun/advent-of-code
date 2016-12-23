@@ -30,18 +30,31 @@ public class Day23 extends AdventOfCode {
 						source= cmd.valueX;
 					}
 					String targetRegister= cmd.registerY;
+					if (targetRegister == null) {
+						// just skip
+						break;
+					}
 					registers.put(targetRegister, source);
 					break;
 				case INC:
 					value= registers.getOrDefault(cmd.registerX, 0) + 1;
+					if (cmd.registerX == null) {
+						// just skip
+						break;
+					}
 					registers.put(cmd.registerX, value);
 					break;
 				case DEC:
 					value= registers.getOrDefault(cmd.registerX, 0) - 1;
+					if (cmd.registerX == null) {
+						// just skip
+						break;
+					}
 					registers.put(cmd.registerX, value);
 					break;
 				case TGL:
-					// TODO
+					// handled outside
+					break;
 				case JNZ:
 				default:
 					Integer x;
@@ -53,7 +66,7 @@ public class Day23 extends AdventOfCode {
 					}
 
 					if (x != 0) {
-						int y= 0;
+						int y;
 						if (cmd.valueY == null) {
 							// copy from register
 							y= registers.getOrDefault(cmd.registerY, 0);
@@ -107,8 +120,11 @@ public class Day23 extends AdventOfCode {
 	@Test
 	@Override
 	public void runTask2 () {
-		int solution= -1;
-		assertThat(solveTask2(getInputLines()), is(solution));
+		int solution= 479011005;
+
+		Computer computer= new Computer();
+		computer.registers.put("a", 12);
+		assertThat(solve(getInputLines(), computer), is(solution));
 	}
 
 	@Test
@@ -139,7 +155,6 @@ public class Day23 extends AdventOfCode {
 				break;
 			}
 			Command cmd = commands.get(i);
-			System.out.println("processing " + cmd);
 			int offset= 1;
 			if (cmd.instruction == Instruction.TGL) {
 				toggle(computer, commands, cmd, i);
@@ -170,11 +185,6 @@ public class Day23 extends AdventOfCode {
 		}
 
 	}
-
-	private int solveTask2(List<String> inputLines) {
-		return -1;
-	}
-
 
 	private Command parse(String line) {
 		String[] tokens= line.split(" ");
