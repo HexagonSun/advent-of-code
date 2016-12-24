@@ -6,7 +6,6 @@ import org.junit.Test;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -24,16 +23,17 @@ public class Day24 extends AdventOfCode {
 	static class Vertex implements Comparable<Vertex> {
 		final int number;
 		Set<Edge> adjacencies= new HashSet<>();
-		double minDistance = Double.POSITIVE_INFINITY;
+		int minDistance;
 		Vertex previous;
-		public Map<Vertex, Integer> neighborWeights;
+		Map<Vertex, Integer> neighborWeights;
 
-		public Vertex(int number) {
+		Vertex(int number) {
 			this.number= number;
+			reset();
 		}
 
 		void reset() {
-			minDistance= Double.POSITIVE_INFINITY;
+			minDistance= Integer.MAX_VALUE;
 			previous= null;
 		}
 
@@ -44,17 +44,17 @@ public class Day24 extends AdventOfCode {
 
 		@Override
 		public String toString() {
-			return "" + number;
+			return String.valueOf(number);
 		}
 	}
 
 	static class Edge {
-		final Vertex target;
+		final Vertex to;
 		final int weight;
 
-		public Edge (Vertex argTarget, int argWeight) {
-			target = argTarget;
-			weight = argWeight;
+		Edge (Vertex to, int weight) {
+			this.to= to;
+			this.weight= weight;
 		}
 
 		@Override
@@ -63,57 +63,16 @@ public class Day24 extends AdventOfCode {
 			if (o == null || getClass() != o.getClass()) return false;
 
 			Edge edge = (Edge) o;
-
-			if (weight != edge.weight) return false;
-			return target.equals(edge.target);
+			return weight == edge.weight && to.equals(edge.to);
 		}
 
 		@Override
 		public int hashCode() {
-			int result = target.hashCode();
+			int result = to.hashCode();
 			result = 31 * result + weight;
 			return result;
 		}
 	}
-
-	static class Dijkstra
-	{
-		public static void computePaths(Vertex source)
-		{
-			source.minDistance = 0.;
-			PriorityQueue<Vertex> vertexQueue = new PriorityQueue<>();
-			vertexQueue.add(source);
-
-			while (!vertexQueue.isEmpty()) {
-				Vertex u = vertexQueue.poll();
-
-				// Visit each edge exiting u
-				for (Edge e : u.adjacencies) {
-					Vertex v = e.target;
-					double weight = e.weight;
-					double distanceThroughU = u.minDistance + weight;
-					if (distanceThroughU < v.minDistance) {
-						vertexQueue.remove(v);
-
-						v.minDistance = distanceThroughU ;
-						v.previous = u;
-						vertexQueue.add(v);
-					}
-				}
-			}
-		}
-
-		public static List<Vertex> getShortestPathTo(Vertex target)
-		{
-			List<Vertex> path = new ArrayList<>();
-			for (Vertex vertex = target; vertex != null; vertex = vertex.previous)
-				path.add(vertex);
-
-			Collections.reverse(path);
-			return path;
-		}
-	}
-
 
 	@Test
 	@Override
@@ -125,8 +84,8 @@ public class Day24 extends AdventOfCode {
 	@Test
 	@Override
 	public void runTask2() {
-		int solution = 14445;
-		assertThat(solveTask1(getInputLines()), is(solution));
+		int solution = 660;
+		assertThat(solveTask2(getInputLines()), is(solution));
 	}
 
 	@Test
@@ -141,66 +100,49 @@ public class Day24 extends AdventOfCode {
 	}
 
 	private int solveTask1(List<String> inputLines) {
+		return solve(inputLines, false);
+	}
+
+	private int solveTask2(List<String> inputLines) {
+		return solve(inputLines, true);
+	}
+
+	private int solve(List<String> inputLines, boolean part2) {
 		Map<Integer, Point> locations = new HashMap<>();
 		int[][] maze = parseMaze(inputLines, locations);
 
 //		printMaze(maze);
-//		System.out.println("Locations: " + locations);
 
-		// build graph for Dijkstra
-		Map<Integer, Vertex> vertices = new HashMap<>();
-		for (Integer i : locations.keySet()) {
-			Vertex v= new Vertex(i);
-			vertices.put(i, v);
-		}
-
-		// find pairwise shortest distances, create Edge & associate with corresponding vertex
-		for (int i = 0; i < locations.size() - 1; i++) {
-			Point pointFrom = locations.get(i);
-			Vertex vertexFrom= vertices.get(i);
-
-			for (int j = 1; j < locations.size(); j++) {
-				if (i == j) {
-					continue;
-				}
-
-				Point pointTo = locations.get(j);
-				Vertex vertexTo= vertices.get(j);
-
-				// copy maze so we don't modifiy it for the next iteration
-				int[][] mazeCopy = clone(maze);
-				LinkedList<Point> path = findShortestPath(mazeCopy, pointFrom, pointTo);
-
-//				System.out.println("From (" + i + ")->[" + pointFrom.x + "/" + pointFrom.y + "] pointTo (" + j +
-//										   ")->[" + pointTo.x + "/" + pointTo.y + "] path length is: " + path.size());
-
-				int pathLength= path == null ? 1000 : path.size();
-				Edge e= new Edge(vertexTo, pathLength);
-				vertexFrom.adjacencies.add(e);
-				// reverse Edge
-				vertexTo.adjacencies.add(new Edge(vertexFrom, pathLength));
-			}
-		}
-
+		Map<Integer, Vertex> vertices = buildGraph(locations, maze);
+		Vertex start= vertices.get(0);
 
 		// do the Dijkstra's between all pairs
-
 		for (int i = 0; i < locations.size(); i++) {
 			Vertex vertexFrom= vertices.get(i);
+			// we need to reset the vertices for the next iteration of Dijkstra
 			clearNodes(vertices);
 			vertexFrom.neighborWeights= doDijkstra(vertices, vertexFrom);
 		}
 
-		// TODO: brute force permutations?
-		Vertex start= vertices.get(0);
-		Set<Vertex> others= new HashSet<>(vertices.values());
-//		others.remove(start);
+		List<Vertex> others= new ArrayList<>(vertices.values());
+		if (part2) {
+			// part two: visit 0 twice
+			others.add(start);
+		}
 
-		List<List<Vertex>> list = generatePermutations(new ArrayList<>(others));
+		// Brute force: calculate all permutations of edges, i.e. all possible paths.
+		// We'll prune paths that we're not interested in within the loop below
+		List<List<Vertex>> list= generatePermutations(others);
+
 		int minDist= Integer.MAX_VALUE;
 		List<Vertex> minPath= null;
 		for (List<Vertex> path : list) {
 			if (!path.get(0).equals(start)) {
+				// only consider permutations that start at start-node
+				continue;
+			}
+			// part two: only consider paths that #end# at 0, too
+			if (part2 && !path.get(path.size()-1).equals(start)) {
 				// only consider permutations that start at start-node
 				continue;
 			}
@@ -219,15 +161,76 @@ public class Day24 extends AdventOfCode {
 			}
 		}
 
-//		// add size from 0 to first vertex in path
-//		Vertex first = minPath.get(0);
-//		minDist+= start.neighborWeights.get(first);
-//		// add start node to path
-//		minPath.add(0, start);
-
-		System.out.println("got min dist: " + minDist);
-		System.out.println("min Path: " + minPath);
+		System.out.println("Min dist: " + minDist);
+		System.out.println("Min path: " + minPath);
 		return minDist;
+	}
+
+	private void calculateDijkstra(Vertex start) {
+		start.minDistance= 0;
+		PriorityQueue<Vertex> queue= new PriorityQueue<>();
+		queue.add(start);
+
+		while (!queue.isEmpty()) {
+			Vertex from= queue.poll();
+
+			// Visit each edge exiting "next"
+			for (Edge e : from.adjacencies) {
+				Vertex to= e.to;
+				int weight= e.weight;
+				int distanceThroughU= from.minDistance + weight;
+
+				if (distanceThroughU < to.minDistance) {
+					queue.remove(to);
+
+					to.minDistance= distanceThroughU ;
+					to.previous= from;
+					queue.add(to);
+				}
+			}
+		}
+	}
+
+	private Map<Integer, Vertex> buildGraph(Map<Integer, Point> locations, int[][] maze) {
+		Map<Integer, Vertex> vertices = createVertices(locations);
+
+		// find pairwise shortest distances, create Edge & associate with corresponding Vertex
+		for (int i = 0; i < locations.size() - 1; i++) {
+			Point pointFrom= locations.get(i);
+			Vertex vertexFrom= vertices.get(i);
+
+			for (int j = 1; j < locations.size(); j++) {
+				if (i == j) {
+					continue;
+				}
+
+				Point pointTo= locations.get(j);
+				Vertex vertexTo= vertices.get(j);
+
+				// copy maze so we don't modifiy it for the next iteration
+				int[][] mazeCopy= clone(maze);
+				LinkedList<Point> path= findShortestPath(mazeCopy, pointFrom, pointTo);
+
+//				System.out.println("From (" + i + ")->[" + pointFrom.x + "/" + pointFrom.y + "] pointTo (" + j +
+//										   ")->[" + pointTo.x + "/" + pointTo.y + "] path length is: " + path.size());
+
+				int pathLength= path == null ? Integer.MAX_VALUE : path.size();
+				Edge e= new Edge(vertexTo, pathLength);
+				vertexFrom.adjacencies.add(e);
+				// reverse Edge
+				vertexTo.adjacencies.add(new Edge(vertexFrom, pathLength));
+			}
+		}
+		return vertices;
+	}
+
+	private Map<Integer, Vertex> createVertices(Map<Integer, Point> locations) {
+		Map<Integer, Vertex> vertices = new HashMap<>();
+		for (Integer i : locations.keySet()) {
+			Vertex v= new Vertex(i);
+			vertices.put(i, v);
+		}
+		return vertices;
 	}
 
 	private void clearNodes(Map<Integer, Vertex> vertices) {
@@ -236,14 +239,14 @@ public class Day24 extends AdventOfCode {
 		}
 	}
 
-	public <T> List<List<T>> generatePermutations(List<T> original) {
+	private <T> List<List<T>> generatePermutations(List<T> original) {
 		if (original.size() == 0) {
-			List<List<T>> result = new ArrayList<List<T>>();
-			result.add(new ArrayList<T>());
+			List<List<T>> result = new ArrayList<>();
+			result.add(new ArrayList<>());
 			return result;
 		}
 		T firstElement = original.remove(0);
-		List<List<T>> allPermutations = new ArrayList<List<T>>();
+		List<List<T>> allPermutations = new ArrayList<>();
 		List<List<T>> permutations = generatePermutations(original);
 		for (List<T> smallerPermutated : permutations) {
 			for (int index = 0; index <= smallerPermutated.size(); index++) {
@@ -262,10 +265,9 @@ public class Day24 extends AdventOfCode {
 		Set<Vertex> others= new HashSet<>(vertices.values());
 		others.remove(start);
 
-		Dijkstra.computePaths(start);
+		calculateDijkstra(start);
 		for (Vertex target : others) {
-//			System.out.println("Distance from " + start + " to " + target + ": " + target.minDistance);
-//			List<Vertex> path = getShortestPathTo(target);
+//			System.out.println("Distance from " + start + " to " + to + ": " + to.minDistance);
 			int dist= (int)Math.floor(target.minDistance);
 			weights.put(target, dist);
 		}
@@ -353,12 +355,11 @@ public class Day24 extends AdventOfCode {
 	}
 
 	private void printMaze(int[][] maze) {
-		int width = maze.length;
 		int height = maze[0].length;
 
 		for (int i = 0; i < height; i++) {
-			for (int j = 0; j < width; j++) {
-				int cell = maze[j][i];
+			for (int[] aMaze : maze) {
+				int cell = aMaze[i];
 				String dot = "";
 				switch (cell) {
 					case -1:
@@ -409,7 +410,7 @@ public class Day24 extends AdventOfCode {
 		return maze;
 	}
 
-	public static int[][] clone(int[][] src) {
+	private static int[][] clone(int[][] src) {
 		int length = src.length;
 		int[][] target = new int[length][src[0].length];
 		for (int i = 0; i < length; i++) {
