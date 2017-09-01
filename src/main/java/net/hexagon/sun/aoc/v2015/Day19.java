@@ -3,9 +3,7 @@ package net.hexagon.sun.aoc.v2015;
 import net.hexagon.sun.aoc.AdventOfCode;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,7 +22,7 @@ public class Day19 extends AdventOfCode {
 		Set<Rule> rules= new HashSet<>();
 		String molecule;
 
-		public int runCalibration() {
+		int runCalibration() {
 			Set<String> allNewMolecules= new HashSet<>();
 
 			char[] chars= molecule.toCharArray();
@@ -36,43 +34,34 @@ public class Day19 extends AdventOfCode {
 		}
 
 		/** like calibration, but "runs backwards" to get to electrons */
-		public int runFabrication() {
-			Set<String> molecules= new HashSet<>();
-			molecules.add(molecule);
+		int runFabrication() {
+			String reducedMolecule= molecule;
 
-			int maxSteps= 50;
-			for (int i = 1; i < maxSteps; i++) {
-				Set<String> newMolecules= reduce(rules, molecules);
-				// prune
-				newMolecules.removeAll(molecules);
-				molecules= newMolecules;
-				if (molecules.contains("e")) {
-					return i;
+			int steps= 0;
+			while(true) {
+				// run rounds of reductions
+				String moleculeAtStartOfRound= reducedMolecule;
+				for (Rule r : rules) {
+					String after = r.reduce(reducedMolecule);
+					if (after.equals(reducedMolecule)) {
+						// no substitution happened
+						continue;
+					}
+					System.out.println("Applied rule " + r);
+					steps++;
+					reducedMolecule= after;
+				}
+				// end rounds of reductions
+
+				if (moleculeAtStartOfRound.equals(reducedMolecule) || reducedMolecule.equals("e")) {
+					break;
 				}
 			}
 
-			return -1;
-		}
-
-		private Set<String> reduce(Set<Rule> rules, Set<String> molecules) {
-			Set<String> reducedMolecules= new HashSet<>(rules.size());
-			for (String molecule : molecules) {
-				reducedMolecules.addAll(reduce(rules, molecule));
-			}
-			return reducedMolecules;
-		}
-
-		private Set<String> reduce(Set<Rule> rules, String molecule) {
-			Set<String> moleculesOfRule= new HashSet<>(rules.size());
-			List<Rule> ruleset= new ArrayList<>(rules);
-			Collections.shuffle(ruleset);
-			for (Rule r : ruleset) {
-				String newMolecule = r.reduce(molecule);
-				if (newMolecule != null && !molecule.equals(newMolecule)) {
-					moleculesOfRule.add(newMolecule);
-				}
-			}
-			return moleculesOfRule;
+			System.out.println("Molecule before everything: " + molecule);
+			System.out.println("Molecule after all rounds : " + reducedMolecule);
+			System.out.println("\tTook " + steps + " steps.");
+			return steps;
 		}
 
 		private Set<String> applyRules(String molecule, int position) {
@@ -91,7 +80,7 @@ public class Day19 extends AdventOfCode {
 		String from;
 		String to;
 
-		public String apply(String molecule, int position) {
+		String apply(String molecule, int position) {
 			if (molecule.regionMatches(position, from, 0, from.length())) {
 				return molecule.substring(0, position) +
 					   to +
@@ -100,8 +89,13 @@ public class Day19 extends AdventOfCode {
 			return null;
 		}
 
-		public String reduce(String molecule) {
+		String reduce(String molecule) {
 			return molecule.replaceFirst(to, from);
+		}
+
+		@Override
+		public String toString() {
+			return from + " -> " + to;
 		}
 	}
 
@@ -110,15 +104,13 @@ public class Day19 extends AdventOfCode {
 	public void runTask1() {
 		List<String> input= getInputLines();
 		assertThat(solveTask1(input), is(535));
-
 	}
 
 	@Test
 	@Override
 	public void runTask2() {
 		List<String> input= getInputLines();
-		assertThat(solveTask2(input), is(-42));
-
+		assertThat(solveTask2(input), is(212));
 	}
 
 	@Test
