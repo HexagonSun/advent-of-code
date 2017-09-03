@@ -46,19 +46,25 @@ public class Day22 extends AdventOfCode {
 		}
 	}
 
+	private enum Difficulty {
+		NORMAL, HARD
+	}
+
 	private static class GameState {
 
+		final Difficulty difficulty;
 		final Wizard player;
 		final Boss boss;
 		private List<Spell> spellHistory= new ArrayList<>();
 
-		GameState(Wizard player, Boss boss) {
+		GameState(Difficulty difficulty, Wizard player, Boss boss) {
+			this.difficulty= difficulty;
 			this.player= player;
 			this.boss= boss;
 		}
 
 		GameState(GameState other) {
-			this(new Wizard(other.player), new Boss(other.boss));
+			this(other.difficulty, new Wizard(other.player), new Boss(other.boss));
 			this.spellHistory= new ArrayList<>(other.spellHistory);
 		}
 
@@ -241,7 +247,9 @@ public class Day22 extends AdventOfCode {
 		// from input file:
 		//		Hit Points: 51
 		//		Damage: 9
-		int spentMana= fightMatch(new GameState(new Wizard(50, 0, 0, 500), new Boss  (51, 9, 0)));
+		int spentMana= fightMatch(new GameState(Difficulty.NORMAL,
+												new Wizard(50, 0, 0, 500),
+											    new Boss  (51, 9, 0)));
 		// Best game was: [GS]: MAGIC_MISSILE -> POISON -> RECHARGE -> MAGIC_MISSILE -> SHIELD -> POISON -> MAGIC_MISSILE -> MAGIC_MISSILE
 		// Total mana spent: 900
 		assertThat(spentMana, is(900));
@@ -253,7 +261,8 @@ public class Day22 extends AdventOfCode {
 		//		Hit Points: 51
 		//		Damage: 9
 
-		GameState state = new GameState(new Wizard(50, 0, 0, 500),
+		GameState state = new GameState(Difficulty.NORMAL,
+									    new Wizard(50, 0, 0, 500),
 									    new Boss  (51, 9, 0));
 
 		processTurn(state, Spell.POISON);
@@ -272,19 +281,55 @@ public class Day22 extends AdventOfCode {
 	@Override
 	@Test
 	public void runTask2() {
+		// from input file:
+		//		Hit Points: 51
+		//		Damage: 9
+		int spentMana= fightMatch(new GameState(Difficulty.HARD,
+											    new Wizard(50, 0, 0, 500),
+											    new Boss  (51, 9, 0)));
+		// Best game was: [GS]: POISON -> RECHARGE -> SHIELD -> POISON -> RECHARGE -> DRAIN -> POISON -> MAGIC_MISSILE
+		// Total mana spent: 1216
 
+		assertThat(spentMana, is(1216));
+	}
+
+	@Test
+	public void runTask2_stepping() {
+		// from input file:
+		//		Hit Points: 51
+		//		Damage: 9
+		GameState state = new GameState(Difficulty.HARD,
+									    new Wizard(50, 0, 0, 500),
+									    new Boss  (51, 9, 0));
+
+		// Best game was: [GS]: POISON -> RECHARGE -> SHIELD -> POISON -> RECHARGE -> DRAIN -> POISON -> MAGIC_MISSILE
+
+
+		processTurn(state, Spell.POISON);
+		processTurn(state, Spell.RECHARGE);
+		processTurn(state, Spell.SHIELD);
+		processTurn(state, Spell.POISON);
+		processTurn(state, Spell.RECHARGE);
+		processTurn(state, Spell.DRAIN);
+		processTurn(state, Spell.POISON);
+		processTurn(state, Spell.MAGIC_MISSILE);
+		
+		assertThat(state.isOver(), is(true));
+		assertThat(state.player.spentMana, is(1216));
 	}
 
 	@Test
 	public void runExample1() {
-		int spentMana= fightMatch(new GameState(new Wizard(10, 0, 0, 250),
+		int spentMana= fightMatch(new GameState(Difficulty.NORMAL,
+											    new Wizard(10, 0, 0, 250),
 											    new Boss  (13, 8, 0)));
 		assertThat(spentMana, is(226));
 	}
 
 	@Test
 	public void runExample1_stepped() {
-		GameState state= new GameState(new Wizard(10, 0, 0, 250),
+		GameState state= new GameState(Difficulty.NORMAL,
+									   new Wizard(10, 0, 0, 250),
 									   new Boss  (13, 8, 0));
 		processTurn(state, Spell.POISON);
 		processTurn(state, Spell.MAGIC_MISSILE);
@@ -295,7 +340,8 @@ public class Day22 extends AdventOfCode {
 
 	@Test
 	public void runExample2() {
-		int spentMana= fightMatch(new GameState(new Wizard(10, 0, 0, 250),
+		int spentMana= fightMatch(new GameState(Difficulty.NORMAL,
+											    new Wizard(10, 0, 0, 250),
 											   	new Boss  (14, 8, 0)));
 
 		// RECHARGE -> SHIELD -> DRAIN -> POISON -> MAGIC_MISSILE
@@ -354,6 +400,11 @@ public class Day22 extends AdventOfCode {
 		Boss boss= state.boss;
 
 		// player turn
+		processDifficulty(state);
+		if (state.isOver()) {
+			return;
+		}
+
 		state.applyEffect();
 		if (state.isOver()) {
 			return;
@@ -372,4 +423,11 @@ public class Day22 extends AdventOfCode {
 		}
 		boss.attack(player);
 	}
+
+	private void processDifficulty(GameState state) {
+		if (Difficulty.HARD == state.difficulty) {
+			state.player.hp-= 1;
+		}
+	}
+
 }
