@@ -77,5 +77,4 @@ public class Day17 extends AdventOfCode {
 		}
 		return buffer.valueAfterZero;
 	}
-
 }
