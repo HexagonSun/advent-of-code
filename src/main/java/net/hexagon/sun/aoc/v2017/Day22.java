@@ -15,6 +15,10 @@ public class Day22 extends AdventOfCode {
 	enum State {
 		CLEAN ('.'), WEAKENED ('W'), INFECTED('#'), FLAGGED('F');
 
+		public static State of(char c) {
+			return c == '#' ? State.INFECTED : State.CLEAN;
+		}
+
 		private final char symbol;
 
 		State (char symbol) {
@@ -28,38 +32,29 @@ public class Day22 extends AdventOfCode {
 	}
 
 	static class Carrier {
-		Point2D direction= new Point2D(0, -1);
-		Point2D pos;
+		private static final Point2D UP= new Point2D(0, -1);
+		private static final Point2D RIGHT= new Point2D(1, 0);
+		private static final Point2D DOWN= new Point2D(0, 1);
+		private static final Point2D LEFT= new Point2D(-1, 0);
 
-		int x() {
-			return (int)pos.getX();
-		}
-		int y() {
-			return (int)pos.getY();
-		}
+		private Point2D direction= UP;
+		private Point2D pos;
+
+		int x() { return (int)pos.getX(); }
+		int y() { return (int)pos.getY(); }
 
 		void right() {
-			if (direction.getX() == 0 && direction.getY() == -1) {
-				direction= new Point2D(1, 0);
-			} else if (direction.getX() == 1 && direction.getY() == 0) {
-				direction= new Point2D(0, 1);
-			} else if (direction.getX() == 0 && direction.getY() == 1) {
-				direction= new Point2D(-1, 0);
-			} else if (direction.getX() == -1 && direction.getY() == 0) {
-				direction= new Point2D(0, -1);
-			}
+			if      (direction.equals(UP)) { direction= RIGHT; }
+			else if (direction.equals(RIGHT)) { direction= DOWN; }
+			else if (direction.equals(DOWN)) { direction= LEFT; }
+			else if (direction.equals(LEFT)) { direction= UP; }
 		}
 
 		void left() {
-			if (direction.getX() == 0 && direction.getY() == -1) {
-				direction= new Point2D(-1, 0);
-			} else if (direction.getX() == 1 && direction.getY() == 0) {
-				direction= new Point2D(0, -1);
-			} else if (direction.getX() == 0 && direction.getY() == 1) {
-				direction= new Point2D(1, 0);
-			} else if (direction.getX() == -1 && direction.getY() == 0) {
-				direction= new Point2D(0, 1);
-			}
+			if      (direction.equals(UP)) { direction= LEFT; }
+			else if (direction.equals(RIGHT)) { direction= UP; }
+			else if (direction.equals(DOWN)) { direction= RIGHT; }
+			else if (direction.equals(LEFT)) { direction= DOWN; }
 		}
 
 		void move() {
@@ -135,7 +130,7 @@ public class Day22 extends AdventOfCode {
 
 		int cnt= 0;
 		for (int i = 0; i < iterations; i++) {
-			boolean wasInfected= part2 ? tick2(grid, c) : tick(grid, c);
+			boolean wasInfected= tick(grid, c, part2);
 			if (wasInfected) {
 				cnt++;
 			}
@@ -144,49 +139,29 @@ public class Day22 extends AdventOfCode {
 		return cnt;
 	}
 
-	private boolean tick2 (State[][] grid, Carrier c) {
+	private boolean tick (State[][] grid, Carrier c, boolean isPartTwo) {
 		State current = grid[c.y()][c.x()];
-		boolean newInfection= false;
-		State newState;
+		turn(c, current);
 
-		switch (current) {
-			case CLEAN:
-				c.left();
-				newState= State.WEAKENED;
-				break;
-			case WEAKENED:
-				newState= State.INFECTED;
-				newInfection= true;
-				break;
-			case INFECTED:
-				c.right();
-				newState= State.FLAGGED;
-				break;
-			default:
-				c.left(); c.left();
-				newState= State.CLEAN;
-				break;
-		}
-
+		State newState= getNextState(current, isPartTwo);
 		grid[c.y()][c.x()]= newState;
+
 		c.move();
-		return newInfection;
+		return newState == State.INFECTED;
 	}
 
-	private boolean tick (State[][] grid, Carrier c) {
-		State current = grid[c.y()][c.x()];
-		boolean newInfection= false;
-		State newState= State.CLEAN;
-		if (current == State.INFECTED) {
-			c.right();
+	private void turn (Carrier c, State current) {
+		if      (current == State.CLEAN) { c.left(); }
+		else if (current == State.INFECTED) { c.right(); }
+		else if (current == State.FLAGGED) { c.left(); c.left(); }
+	}
+
+	private State getNextState (State current, boolean isPartTwo) {
+		if (isPartTwo) {
+			return State.values()[(current.ordinal() + 1) % State.values().length];
 		} else {
-			c.left();
-			newInfection= true;
-			newState= State.INFECTED;
+			return current == State.INFECTED ? State.CLEAN : State.INFECTED;
 		}
-		grid[c.y()][c.x()]= newState;
-		c.move();
-		return newInfection;
 	}
 
 	private State[][] parse (List<String> input, int gridSize) {
@@ -205,8 +180,7 @@ public class Day22 extends AdventOfCode {
 			String row = input.get(i);
 			int j= offset;
 			for (char c : row.toCharArray()) {
-				State s= c == '#' ? State.INFECTED : State.CLEAN;
-				grid[i + offset][j++]= s;
+				grid[i + offset][j++]= State.of(c);
 			}
 		}
 
