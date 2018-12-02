@@ -85,7 +85,7 @@ public class Day02 extends AdventOfCode {
 			}
 		}
 
-		return smallesCommon(smallestLeft, smallestRight);
+		return smallestCommon(smallestLeft, smallestRight);
 	}
 
 	private Set<String> twoSameLetters (List<String> input) {
@@ -132,9 +132,9 @@ public class Day02 extends AdventOfCode {
 	}
 
 
-	private String smallesCommon (String smallesLeft, String smallesRight) {
-		char[] left = smallesLeft.toCharArray();
-		char[] right = smallesRight.toCharArray();
+	private String smallestCommon (String smallestLeft, String smallestRight) {
+		char[] left = smallestLeft.toCharArray();
+		char[] right = smallestRight.toCharArray();
 
 		String common = "";
 		for (int i = 0; i < left.length; i++) {
