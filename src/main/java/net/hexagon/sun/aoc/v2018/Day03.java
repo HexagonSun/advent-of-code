@@ -64,6 +64,18 @@ public class Day03 extends AdventOfCode {
 	}
 
 	@Test
+	public void runExample2 () {
+		List<String> input = Arrays.asList(
+				"#1 @ 1,3: 4x4",
+				"#2 @ 3,1: 4x4",
+				"#3 @ 5,5: 2x2",
+				// #4: same patch where #1 & #2 already overlap
+				"#4 @ 3,3: 2x2"
+		);
+		assertThat(solveTask1(input), is(4L));
+	}
+
+	@Test
 	public void runTask2Example1 () {
 		List<String> input = Arrays.asList(
 				"#1 @ 1,3: 4x4",
