@@ -1,15 +1,17 @@
 package net.hexagon.sun.aoc.v2018;
 
 import net.hexagon.sun.aoc.AdventOfCode;
+import net.hexagon.sun.aoc.lib.Combinatorics;
 import org.junit.Test;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -99,20 +101,7 @@ public class Day03 extends AdventOfCode {
 
 	private long solveTask1 (List<String> input) {
 		List<Patch> patches = input.stream().map(this::parse).collect(Collectors.toList());
-
-		List<Rectangle> intersections = new ArrayList<>();
-		for (int i = 0; i < patches.size(); i++) {
-			Patch pi = patches.get(i);
-			for (int j = i; j < patches.size(); j++) {
-				Patch pj = patches.get(j);
-				if (pi.id == pj.id) {
-					continue;
-				}
-				if (pi.intersects(pj)) {
-					intersections.add(pi.intersectionSquares(pj));
-				}
-			}
-		}
+		List<Rectangle> intersections= Combinatorics.Combinations.fromList(patches, this::getIntersectingRectangle, Objects::nonNull);
 
 		long overlapCount = 0;
 		Map<Integer, Map<Integer, Boolean>> taken = new HashMap<>();
@@ -135,6 +124,16 @@ public class Day03 extends AdventOfCode {
 		return overlapCount;
 	}
 
+	private Rectangle getIntersectingRectangle (Patch pi, Patch pj) {
+		if (pi.id == pj.id) {
+			return null;
+		}
+		if (pi.intersects(pj)) {
+			return pi.intersectionSquares(pj);
+		}
+		return null;
+	}
+
 	private Patch parse (String input) {
 		Matcher m = PATTERN.matcher(input);
 		if (m.matches()) {
@@ -152,24 +151,11 @@ public class Day03 extends AdventOfCode {
 	private int solveTask2 (List<String> input) {
 		List<Patch> patches = input.stream().map(this::parse).collect(Collectors.toList());
 
-		Set<Integer> allIds = new HashSet<>();
-		Set<Integer> patchesThatOverlap = new HashSet<>();
-
-		for (int i = 0; i < patches.size(); i++) {
-			Patch pi = patches.get(i);
-			allIds.add(pi.id);
-			for (int j = i; j < patches.size(); j++) {
-				Patch pj = patches.get(j);
-				allIds.add(pj.id);
-				if (pi.id == pj.id) {
-					continue;
-				}
-				if (pi.intersects(pj)) {
-					patchesThatOverlap.add(pi.id);
-					patchesThatOverlap.add(pj.id);
-				}
-			}
-		}
+		Set<Integer> allIds = patches.stream().map(p -> p.id).collect(Collectors.toSet());
+		Set<Integer> patchesThatOverlap = Combinatorics.Combinations.fromList(patches, this::getOverlappingPatches)
+												  .stream()
+												  .flatMap(Collection::stream)
+												  .collect(Collectors.toSet());
 
 		allIds.removeAll(patchesThatOverlap);
 		System.out.println("all ids: " + allIds);
@@ -177,6 +163,16 @@ public class Day03 extends AdventOfCode {
 			throw new IllegalStateException("There can only be one");
 		}
 		return allIds.iterator().next();
+	}
+
+	private List<Integer> getOverlappingPatches (Patch pi, Patch pj) {
+		if (pi.id == pj.id) {
+			return Collections.emptyList();
+		}
+		if (pi.intersects(pj)) {
+			return Arrays.asList(pi.id, pj.id);
+		}
+		return Collections.emptyList();
 	}
 
 
