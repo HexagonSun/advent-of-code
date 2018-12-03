@@ -101,7 +101,7 @@ public class Day03 extends AdventOfCode {
 
 	private long solveTask1 (List<String> input) {
 		List<Patch> patches = input.stream().map(this::parse).collect(Collectors.toList());
-		List<Rectangle> intersections= Combinatorics.Combinations.fromList(patches, this::getIntersectingRectangle, Objects::nonNull);
+		List<Rectangle> intersections = Combinatorics.Combinations.fromList(patches, this::getIntersectingRectangle, Objects::nonNull);
 
 		long overlapCount = 0;
 		Map<Integer, Map<Integer, Boolean>> taken = new HashMap<>();
@@ -134,20 +134,6 @@ public class Day03 extends AdventOfCode {
 		return null;
 	}
 
-	private Patch parse (String input) {
-		Matcher m = PATTERN.matcher(input);
-		if (m.matches()) {
-			return new Patch(
-					Integer.parseInt(m.group(1)),
-					Integer.parseInt(m.group(2)),
-					Integer.parseInt(m.group(3)),
-					Integer.parseInt(m.group(4)),
-					Integer.parseInt(m.group(5))
-			);
-		}
-		throw new IllegalStateException("parse error @ " + input);
-	}
-
 	private int solveTask2 (List<String> input) {
 		List<Patch> patches = input.stream().map(this::parse).collect(Collectors.toList());
 
@@ -175,5 +161,18 @@ public class Day03 extends AdventOfCode {
 		return Collections.emptyList();
 	}
 
+	private Patch parse (String input) {
+		Matcher m = PATTERN.matcher(input);
+		if (m.matches()) {
+			return new Patch(
+					Integer.parseInt(m.group(1)),
+					Integer.parseInt(m.group(2)),
+					Integer.parseInt(m.group(3)),
+					Integer.parseInt(m.group(4)),
+					Integer.parseInt(m.group(5))
+			);
+		}
+		throw new IllegalStateException("parse error @ " + input);
+	}
 
 }
