@@ -4,7 +4,6 @@ import net.hexagon.sun.aoc.AdventOfCode;
 import org.junit.Test;
 
 import java.awt.*;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,31 +21,24 @@ import static org.hamcrest.core.Is.is;
 public class Day03 extends AdventOfCode {
 
 	private static class Patch {
-		Rectangle2D r;
-		int id;
-		int left;
-		int top;
-		int width;
-		int height;
+		private final int id;
+		private final Rectangle rect;
 
-		private Rectangle rect;
-
-		public Rectangle getRect () {
-			if (rect == null) {
-				rect = new Rectangle(left, top, width, height);
-			}
-			return rect;
+		Patch (int id, int left, int top, int width, int height) {
+			this.id = id;
+			rect = new Rectangle(left, top, width, height);
 		}
 
-		public boolean intersects (Patch other) {
-			return getRect().intersects(other.getRect());
+		boolean intersects (Patch other) {
+			return rect.intersects(other.rect);
 		}
 
-		public Rectangle intersectionSquares (Patch other) {
-			return getRect().intersection(other.getRect());
+		Rectangle intersectionSquares (Patch other) {
+			return rect.intersection(other.rect);
 		}
 	}
 
+	// matches input of the form "#1264 @ 923,620: 29x18"
 	private static final Pattern PATTERN = Pattern.compile("^#(\\d+) @ (\\d+),(\\d+): (\\d+)x(\\d+)$");
 
 	@Test
@@ -132,16 +124,15 @@ public class Day03 extends AdventOfCode {
 	}
 
 	private Patch parse (String input) {
-//		#1264 @ 923,620: 29x18
 		Matcher m = PATTERN.matcher(input);
 		if (m.matches()) {
-			Patch p = new Patch();
-			p.id = Integer.parseInt(m.group(1));
-			p.left = Integer.parseInt(m.group(2));
-			p.top = Integer.parseInt(m.group(3));
-			p.width = Integer.parseInt(m.group(4));
-			p.height = Integer.parseInt(m.group(5));
-			return p;
+			return new Patch(
+					Integer.parseInt(m.group(1)),
+					Integer.parseInt(m.group(2)),
+					Integer.parseInt(m.group(3)),
+					Integer.parseInt(m.group(4)),
+					Integer.parseInt(m.group(5))
+			);
 		}
 		throw new IllegalStateException("parse error @ " + input);
 	}
