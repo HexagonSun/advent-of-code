@@ -14,26 +14,27 @@ import static org.hamcrest.core.Is.is;
 public class Day08 extends AdventOfCode {
 
 	private static class Node {
-		int nbChildren;
-		int nbMeta;
 		List<Node> children= new ArrayList<>();
 		List<Integer> meta= new ArrayList<>();
 
 		int getValue() {
 			if (children.isEmpty()) {
-				return meta.stream().mapToInt(n -> n).sum();
-			} else {
-				int sum= 0;
-				for (int n : meta) {
-					int index = n - 1; // make it 0 based
-					if (index >= children.size()) {
-						continue;
-					}
-					Node c= children.get(index);
-					sum+= c.getValue();
-				}
-				return sum;
+				return sumMeta();
 			}
+			return meta.stream()
+				    .map(n -> n - 1) // 0-based
+					.filter(n -> n < children.size())
+					.map(i -> children.get(i))
+					.mapToInt(Node::getValue)
+					.sum();
+		}
+
+		int sumMeta () {
+			return sum(meta) + children.stream().mapToInt(Node::sumMeta).sum();
+		}
+
+		static int sum(List<Integer> elements) {
+			return elements.stream().mapToInt(n -> n).sum();
 		}
 	}
 
@@ -49,7 +50,7 @@ public class Day08 extends AdventOfCode {
 		assertThat(solveTask2(getInputAsString()), is(19724));
 	}
 
-	String sampleInput= "2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2";
+	private String sampleInput= "2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2";
 
 	@Test
 	public void runExample1 () {
@@ -62,24 +63,17 @@ public class Day08 extends AdventOfCode {
 	}
 
 	private int solveTask1 (String input) {
-		Node root= parse(input);
-		return sumMeta(root);
+		return parse(input).sumMeta();
 	}
 
 	private int solveTask2 (String input) {
-		Node root= parse(input);
-		return root.getValue();
-	}
-
-	private int sumMeta (Node root) {
-		return root.meta.stream().mapToInt(n -> n).sum() +
-			   root.children.stream().mapToInt(this::sumMeta).sum();
+		return parse(input).getValue();
 	}
 
 	private Node parse (String input) {
-		String[] tokens= input.split(" ");
-		PrimitiveIterator.OfInt it= Arrays.stream(tokens).map(Integer::valueOf).mapToInt(n -> n).iterator();
-
+		PrimitiveIterator.OfInt it= Arrays.stream(input.split(" "))
+											.mapToInt(Integer::valueOf)
+											.iterator();
 		return parseNode(it);
 	}
 
@@ -89,20 +83,19 @@ public class Day08 extends AdventOfCode {
 		}
 
 		Node n= new Node();
-		n.nbChildren= it.nextInt();
-		n.nbMeta= it.next();
+		int nbChildren= it.nextInt();
+		int nbMeta= it.next();
 
 		// children
-		for (int i = 0; i < n.nbChildren; i++) {
+		while(nbChildren-- > 0) {
 			Node child = parseNode(it);
 			n.children.add(child);
 		}
 		// meta
-		for (int i = 0; i < n.nbMeta; i++) {
+		while(nbMeta-- > 0) {
 			n.meta.add(it.next());
 		}
 		return n;
 	}
-
 
 }
