@@ -3,7 +3,6 @@ package net.hexagon.sun.aoc.v2018;
 import net.hexagon.sun.aoc.AdventOfCode;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -14,128 +13,122 @@ import static org.hamcrest.core.Is.is;
 
 public class Day09 extends AdventOfCode {
 
-	private static class CircularList<E> extends ArrayList<E> {
+	private static class Node {
+		private final int value;
+		private Node next;
+		private Node prev;
 
-		@Override
-		public void add (int index, E element) {
-			super.add(index % size(), element);
+		Node(int value) {
+			this.value= value;
 		}
 
 		@Override
-		public E get (int index) {
-			return super.get(index % size());
-		}
-
-		@Override
-		public E remove (int index) {
-			return super.remove(index % size());
+		public String toString () {
+			return "[" + value + "]";
 		}
 	}
 
-	private static class MarbleCircle extends CircularList<Integer> {
+	private static class MarbleCircle {
 
-		int currentMarble= 0;
+		private Node first;
+		private Node current;
 
 		MarbleCircle() {
-			super();
-			add(0);
+			first= new Node(0);
+			first.next= first;
+			first.prev= first;
+			current= first;
+		}
+
+		Node addAfter(Node node, int value) {
+			Node n= new Node(value);
+
+			n.next= node.next;
+			node.next.prev= n;
+
+			n.prev= node;
+			node.next= n;
+
+			return n;
+		}
+
+		int remove(Node node) {
+			Node prev= node.prev;
+			Node next= node.next;
+			prev.next= next;
+			next.prev= prev;
+			if (current == node) {
+				current= next;
+			}
+			return node.value;
 		}
 
 		int addMarble (Integer marbleValue) {
 			if (marbleValue % 23 == 0) {
 				return add23(marbleValue);
 			}
-			if (size() == 1) {
-				// add at end
-				add(marbleValue);
-				currentMarble= 1;
-				return 0;
-			}
-
-			int next1= (currentMarble + 1) % size();
-			int next2 = (currentMarble + 2) % size();
-//			System.out.println("adding marble " + marbleValue + " between " + next1 + " and " + next2);
-
-			if (next2 == 0) {
-				// add at end
-				add(marbleValue);
-				currentMarble= size() - 1;
-				return 0;
-			}
-			add(next2, marbleValue);
-			currentMarble= next2;
+			Node next= current.next;
+			current= addAfter(next, marbleValue);
 			return 0;
 		}
 
 		private int add23 (Integer marbleValue) {
-//			System.out.println("Special case");
-
-			currentMarble= (currentMarble - 7) % size();
-			if (currentMarble < 0) {
-				currentMarble += size();
-			}
-//			System.out.println("\tnext currentMarble " + currentMarble);
-
-			int removedValue= remove(currentMarble);
-//			System.out.println("\tmarbleValue " + marbleValue);
-//			System.out.println("\tremoved " + removedValue);
-//			System.out.println("\tsum: " + (marbleValue + removedValue));
-
+			current= current.prev.prev.prev.prev.prev.prev.prev;
+			int removedValue= remove(current);
 			return marbleValue + removedValue;
 		}
-
 	}
 
 	@Test
 	@Override
 	public void runTask1 () {
-		assertThat(solveTask1(476, 71657), is(386018));
+		assertThat(solveTask1(476, 71657), is(386018L));
 	}
 
 	@Test
 	@Override
 	public void runTask2 () {
-		assertThat(solveTask2(476, 71657), is(-1));
+		assertThat(solveTask2(476, 71657), is(3085518618L));
 	}
 
 	@Test
 	public void runExample1 () {
-		assertThat(solveTask1(9, 25), is(32));
+		assertThat(solveTask1(9, 25), is(32L));
 	}
 
 	@Test
 	public void runExample2 () {
-		assertThat(solveTask1(10, 1618), is(8317));
+		assertThat(solveTask1(10, 1618), is(8317L));
 	}
 
 	@Test
 	public void runExample3 () {
-		assertThat(solveTask1(13, 7999), is(146373));
+		assertThat(solveTask1(13, 7999), is(146373L));
 	}
 
 	@Test
 	public void runExample4 () {
-		assertThat(solveTask1(17, 1104), is(2764));
+		assertThat(solveTask1(17, 1104), is(2764L));
 	}
 
 	@Test
 	public void runExample5 () {
-		assertThat(solveTask1(21, 6111), is(54718));
+		assertThat(solveTask1(21, 6111), is(54718L));
 	}
 
 	@Test
 	public void runExample6 () {
-		assertThat(solveTask1(30, 5807), is(37305));
+		assertThat(solveTask1(30, 5807), is(37305L));
 	}
 
-	private int solveTask1 (int nbPlayers, int nbMarbles) {
+	private long solveTask1 (int nbPlayers, int nbMarbles) {
 		MarbleCircle circle = new MarbleCircle();
 
 		Iterator<Integer> marbles = IntStream.rangeClosed(1, nbMarbles)
 											.boxed()
 											.iterator();
 
-		Map<Integer, Integer> scoresByPlayer= new HashMap<>();
+		Map<Integer, Long> scoresByPlayer= new HashMap<>();
 		int player= 1;
 		while (marbles.hasNext()) {
 			if (player > nbPlayers) {
@@ -143,14 +136,14 @@ public class Day09 extends AdventOfCode {
 			}
 
 			int score= circle.addMarble(marbles.next());
-			scoresByPlayer.putIfAbsent(player, 0);
+			scoresByPlayer.putIfAbsent(player, 0L);
 			scoresByPlayer.computeIfPresent(player, (key, value) -> value + score);
 			player++;
 		}
-		return scoresByPlayer.values().stream().mapToInt(n -> n).max().orElse(-1);
+		return scoresByPlayer.values().stream().mapToLong(n -> n).max().orElse(-1L);
 	}
 
-	private int solveTask2 (int nbPlayers, int nbMarbles) {
+	private long solveTask2 (int nbPlayers, int nbMarbles) {
 		return solveTask1(nbPlayers, nbMarbles * 100);
 	}
 
