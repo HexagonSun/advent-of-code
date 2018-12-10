@@ -110,14 +110,14 @@ public class Day10 extends AdventOfCode {
 			}
 		}
 
-		System.out.println("grid size: " + minX + " | " + maxX + " // " + minY + " | " + maxY);
-		int offsetX = minX < 0 ? -minX : 0;
-		int offsetY = minY < 0 ? -minY : 0;
+//		System.out.println("\tgrid size: " + minX + " | " + maxX + " // " + minY + " | " + maxY);
+		int offsetX = -minX;
+		int offsetY = -minY;
 
-		int extra = 200;
+		int extra = 1;
 		int width= extra + maxX - minX;
 		int heigth=extra + maxY - minY;
-		System.out.println("height: " + heigth + " width: " + width);
+		System.out.println("\theight: " + heigth + " width: " + width);
 
 		// heuristic: width/height must not be too large,
 		// the points must be near each other to form a message
@@ -125,8 +125,8 @@ public class Day10 extends AdventOfCode {
 		// the exact value/threshold is found through trial & error, i.e. observing the printed width/heigth
 		// with ever increasing number of ticks.
 
-		if (heigth > 210) {
-			System.out.println("diff too large, skipping print");
+		if (heigth > extra + 10) {
+			System.out.println("\tdiff too large, skipping print");
 			return;
 		}
 
@@ -141,11 +141,10 @@ public class Day10 extends AdventOfCode {
 		}
 
 		for (int i = 0; i < heigth; i++) {
-			char[] row= grid[i];
-			for (int j = 0; j < width; j++) {
-				System.out.print(row[j]);
+			String line = String.valueOf(grid[i]).trim();
+			if (!line.isEmpty()) {
+				System.out.println(line);
 			}
-			System.out.println("");
 		}
 	}
 
