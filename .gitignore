@@ -1,5 +1,4 @@
-*.ipr
-*.iws
-*.iml
-out
+.idea
+.gradle
+build
 others
