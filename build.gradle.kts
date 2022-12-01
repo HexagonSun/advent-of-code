@@ -1,7 +1,7 @@
 plugins {
     `java-library`
     kotlin("jvm") version "1.7.21"
-    id("org.openjfx.javafxplugin") version "0.0.10"
+    id("org.openjfx.javafxplugin") version "0.0.13"
 }
 
 repositories {
@@ -19,10 +19,10 @@ javafx {
 }
 
 dependencies {
-    api("com.google.code.gson:gson:2.5")
+    api("com.google.code.gson:gson:2.10")
 
-    implementation("junit:junit:4.12")
-    implementation("org.hamcrest:hamcrest-library:1.3")
+    implementation("junit:junit:4.13.2")
+    implementation("org.hamcrest:hamcrest-library:2.2")
 }
 
 tasks {
