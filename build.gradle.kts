@@ -1,6 +1,6 @@
 plugins {
     `java-library`
-    kotlin("jvm") version "1.5.20"
+    kotlin("jvm") version "1.7.21"
     id("org.openjfx.javafxplugin") version "0.0.10"
 }
 
@@ -8,15 +8,10 @@ repositories {
     mavenCentral()
 }
 
-sourceSets {
-    main {
-        java.srcDir("src/main/java")
-    }
-}
-
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
 }
 
 javafx {
