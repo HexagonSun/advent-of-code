@@ -2,7 +2,7 @@ package net.hexagon.sun.aoc.v2017;
 
 import javafx.geometry.Point3D;
 import net.hexagon.sun.aoc.AdventOfCode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -1,10 +1,10 @@
 package net.hexagon.sun.aoc.v2015;
 
 import net.hexagon.sun.aoc.AdventOfCode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 // http://adventofcode.com/2015/day/20
 public class Day20 extends AdventOfCode {

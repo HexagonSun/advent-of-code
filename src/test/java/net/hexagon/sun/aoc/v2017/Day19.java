@@ -1,7 +1,7 @@
 package net.hexagon.sun.aoc.v2017;
 
 import net.hexagon.sun.aoc.AdventOfCode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.awt.*;
 import java.util.Arrays;

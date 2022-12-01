@@ -2,7 +2,7 @@ package net.hexagon.sun.aoc.v2015;
 
 import com.google.gson.Gson;
 import net.hexagon.sun.aoc.AdventOfCode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;

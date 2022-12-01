@@ -2,7 +2,7 @@ package net.hexagon.sun.aoc.v2018;
 
 import net.hexagon.sun.aoc.AdventOfCode;
 import net.hexagon.sun.aoc.lib.Combinatorics;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.awt.*;
 import java.util.Arrays;

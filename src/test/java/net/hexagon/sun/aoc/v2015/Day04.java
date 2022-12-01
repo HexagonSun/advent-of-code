@@ -1,8 +1,8 @@
 package net.hexagon.sun.aoc.v2015;
 
 import net.hexagon.sun.aoc.AdventOfCode;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -17,7 +17,7 @@ public class Day04 extends AdventOfCode {
 
 	MessageDigest digest;
 
-	@Before
+	@BeforeEach
 	public void setUp() throws NoSuchAlgorithmException {
 		digest = MessageDigest.getInstance("MD5");
 	}

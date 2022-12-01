@@ -3,7 +3,7 @@ package net.hexagon.sun.aoc.v2018
 import net.hexagon.sun.aoc.AdventOfKode
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.Is
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class Day01K : AdventOfKode() {
 

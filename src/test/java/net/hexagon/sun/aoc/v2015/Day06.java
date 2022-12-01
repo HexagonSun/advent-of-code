@@ -1,8 +1,8 @@
 package net.hexagon.sun.aoc.v2015;
 
 import net.hexagon.sun.aoc.AdventOfCode;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -87,7 +87,7 @@ public class Day06 extends AdventOfCode {
 	private static final int DIMENSION= 1000;
 	private int[][] grid;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		grid= new int[DIMENSION][DIMENSION];
 	}
