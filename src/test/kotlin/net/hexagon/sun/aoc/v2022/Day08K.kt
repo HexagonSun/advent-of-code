@@ -4,6 +4,9 @@ import net.hexagon.sun.aoc.AdventOfKode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
+private typealias TreeGrid = List<List<Tree>>
+private typealias TreeGridPosition = Pair<Int, Int>
+
 class Day08K : AdventOfKode() {
 
     @Test
@@ -46,148 +49,78 @@ class Day08K : AdventOfKode() {
         assertThat(solveTask2(input)).isEqualTo(8)
     }
 
-    fun solveTask1(input: List<String>): Int {
-        val grid = input.map { line -> line.map { it.toTree() } }
-
-        var nbVisible = 0
-        grid.forEachIndexed { rowIndex, row ->
-            row.forEachIndexed { colIndex, col ->
-                val visible = col.isVisible(grid, rowIndex, colIndex)
-                if (visible) {
-                    nbVisible++
+    private fun solveTask1(input: List<String>): Int =
+        input.toGrid().let { grid ->
+            grid.flatMapIndexed { row, line ->
+                line.mapIndexedNotNull { col, tree ->
+                    tree.takeIf {
+                        it.isVisible(grid, row to col)
+                    }
                 }
-            }
+            }.size
         }
-        return nbVisible
-    }
 
-    fun solveTask2(input: List<String>): Int {
-        val grid = input.map { line -> line.map { it.toTree() } }
-
-        var maxVisible = 0
-        grid.forEachIndexed { rowIndex, row ->
-            row.forEachIndexed { colIndex, col ->
-                col.determineVisibleTrees(grid, rowIndex, colIndex)
-                if (col.nbVisible > maxVisible) {
-                    maxVisible = col.nbVisible
+    private fun solveTask2(input: List<String>): Int =
+        input.toGrid().let { grid ->
+            grid.flatMapIndexed { row, line ->
+                line.mapIndexed { col, tree ->
+                    tree.determineVisibleTrees(grid, row to col)
+                    tree.nbVisible
                 }
-            }
+            }.max()
         }
-        return maxVisible
-    }
-
 }
 
 data class Tree(val height: Int, var visible: Boolean = false, var nbVisible: Int = 1)
 
+private enum class GirdDirection(val next: (TreeGrid, TreeGridPosition) -> Tree?) {
+    UP({ grid, (row, col) -> if (row > 0) { grid[row-1][col]} else null }),
+    LEFT({ grid, (row, col) -> if (col > 0) { grid[row][col-1]} else null }),
+    DOWN({ grid, (row, col) -> if (row < grid.size - 1) { grid[row+1][col]} else null }),
+    RIGHT({ grid, (row, col) -> if (col < grid.size - 1) { grid[row][col+1]} else null }),
+}
+
+private fun TreeGridPosition.next(direction: GirdDirection): TreeGridPosition =
+    when(direction) {
+        GirdDirection.UP -> first - 1 to second
+        GirdDirection.LEFT -> first to second - 1
+        GirdDirection.DOWN -> first + 1 to second
+        GirdDirection.RIGHT -> first to second + 1
+    }
+
 private fun Char.toTree(): Tree = Tree("$this".toInt())
 
-private fun Tree.isVisibleFromTop(grid: List<List<Tree>>, rowIndex: Int, colIndex: Int): Boolean {
-    var row = rowIndex - 1
-    if (row < 0) {
-        this.visible = true
-        this.nbVisible = 0
-        return true
-    }
+private fun Tree.isShadowedBy(other: Tree): Boolean = other.height >= this.height
 
+private fun List<String>.toGrid(): TreeGrid = map { line -> line.map { it.toTree() } }
+
+private fun Tree.isVisible(grid: TreeGrid, position: TreeGridPosition, direction: GirdDirection): Boolean {
+    var cursor = position
+    var next = direction.next(grid, cursor)
     var nbVisible = 0
-    while (row >= 0) {
-        val other = grid[row][colIndex]
-        if (other.height >= this.height) {
-            // tree is shadowed
+    while(next != null) {
+        if (isShadowedBy(next)) {
             nbVisible++
             this.nbVisible *= nbVisible
             return false
         }
         nbVisible++
-        row--
+        cursor = cursor.next(direction)
+        next = direction.next(grid, cursor)
     }
     this.nbVisible *= nbVisible
     return true
 }
 
-private fun Tree.isVisibleFromLeft(grid: List<List<Tree>>, rowIndex: Int, colIndex: Int): Boolean {
-    var col = colIndex - 1
-    if (col < 0) {
-        this.visible = true
-        this.nbVisible = 0
-        return true
-    }
+private fun Tree.isVisible(grid: TreeGrid, position: TreeGridPosition): Boolean =
+    isVisible(grid, position, GirdDirection.UP) ||
+        isVisible(grid, position, GirdDirection.LEFT) ||
+        isVisible(grid, position, GirdDirection.DOWN) ||
+        isVisible(grid, position, GirdDirection.RIGHT)
 
-    var nbVisible = 0
-    while (col >= 0) {
-        val other = grid[rowIndex][col]
-        if (other.height >= this.height) {
-            // tree is shadowed
-            nbVisible++
-            this.nbVisible *= nbVisible
-            return false
-        }
-        nbVisible++
-        col--
-    }
-    this.nbVisible *= nbVisible
-    return true
+private fun Tree.determineVisibleTrees(grid: TreeGrid, position: TreeGridPosition) {
+    isVisible(grid, position, GirdDirection.UP)
+    isVisible(grid, position, GirdDirection.LEFT)
+    isVisible(grid, position, GirdDirection.DOWN)
+    isVisible(grid, position, GirdDirection.RIGHT)
 }
-
-private fun Tree.isVisibleFromBottom(grid: List<List<Tree>>, rowIndex: Int, colIndex: Int): Boolean {
-    var row = rowIndex + 1
-    if (row >= grid.size) {
-        this.visible = true
-        this.nbVisible = 0
-        return true
-    }
-
-    var nbVisible = 0
-    while (row < grid.size) {
-        val other = grid[row][colIndex]
-        if (other.height >= this.height) {
-            // tree is shadowed
-            nbVisible++
-            this.nbVisible *= nbVisible
-            return false
-        }
-        nbVisible++
-        row++
-    }
-    this.nbVisible *= nbVisible
-    return true
-}
-
-private fun Tree.isVisibleFromRight(grid: List<List<Tree>>, rowIndex: Int, colIndex: Int): Boolean {
-    var col = colIndex + 1
-    if (col >= grid.size) {
-        this.visible = true
-        this.nbVisible = 0
-        return true
-    }
-
-    var nbVisible = 0
-    while (col < grid.size) {
-        val other = grid[rowIndex][col]
-        if (other.height >= this.height) {
-            // tree is shadowed
-            nbVisible++
-            this.nbVisible *= nbVisible
-            return false
-        }
-        nbVisible++
-        col++
-    }
-    this.nbVisible *= nbVisible
-    return true
-}
-
-private fun Tree.isVisible(grid: List<List<Tree>>, rowIndex: Int, colIndex: Int): Boolean =
-    isVisibleFromTop(grid, rowIndex, colIndex) ||
-        isVisibleFromLeft(grid, rowIndex, colIndex) ||
-        isVisibleFromBottom(grid, rowIndex, colIndex) ||
-        isVisibleFromRight(grid, rowIndex, colIndex)
-
-private fun Tree.determineVisibleTrees(grid: List<List<Tree>>, rowIndex: Int, colIndex: Int) {
-    isVisibleFromTop(grid, rowIndex, colIndex)
-    isVisibleFromLeft(grid, rowIndex, colIndex)
-    isVisibleFromBottom(grid, rowIndex, colIndex)
-    isVisibleFromRight(grid, rowIndex, colIndex)
-}
-
